@@ -1,0 +1,101 @@
+@extends('layouts.app')
+
+@section('title', 'เพิ่มผู้ใช้ใหม่')
+@section('page-title', 'เพิ่มผู้ใช้ใหม่')
+
+@section('content')
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <form action="{{ route('users.store') }}" method="POST">
+            @csrf
+
+            <div class="space-y-6">
+                <!-- Name -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" value="{{ old('name') }}" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('name') border-red-500 @enderror">
+                    @error('name')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">อีเมล <span class="text-red-500">*</span></label>
+                    <input type="email" name="email" value="{{ old('email') }}" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('email') border-red-500 @enderror">
+                    @error('email')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">เบอร์โทรศัพท์</label>
+                    <input type="text" name="phone" value="{{ old('phone') }}"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <!-- Password -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน <span class="text-red-500">*</span></label>
+                        <input type="password" name="password" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('password') border-red-500 @enderror">
+                        @error('password')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ยืนยันรหัสผ่าน <span class="text-red-500">*</span></label>
+                        <input type="password" name="password_confirmation" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Role & Branch -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">บทบาท <span class="text-red-500">*</span></label>
+                        <select name="role_id" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('role_id') border-red-500 @enderror">
+                            <option value="">-- เลือกบทบาท --</option>
+                            @foreach($roles as $role)
+                            <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                                {{ $role->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('role_id')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">สาขา <span class="text-red-500">*</span></label>
+                        <select name="branch_id" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('branch_id') border-red-500 @enderror">
+                            <option value="">-- เลือกสาขา --</option>
+                            @foreach($branches as $branch)
+                            <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
+                                {{ $branch->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('branch_id')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
+                    </div>
+                </div>
+
+                <!-- Active -->
+                <div class="flex items-center">
+                    <input type="checkbox" name="is_active" id="is_active" value="1" checked
+                        class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <label for="is_active" class="ml-2 text-sm text-gray-700">เปิดใช้งาน</label>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-8 flex items-center justify-end space-x-4">
+                <a href="{{ route('users.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    ยกเลิก
+                </a>
+                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    <i class="fas fa-save mr-2"></i>บันทึก
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
