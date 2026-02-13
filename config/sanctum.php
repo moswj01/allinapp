@@ -2,6 +2,11 @@
 
 use Laravel\Sanctum\Sanctum;
 
+// Compute application URL with port only if Sanctum is installed to avoid fatal errors
+$appUrlWithPort = class_exists(\Laravel\Sanctum\Sanctum::class)
+    ? \Laravel\Sanctum\Sanctum::currentApplicationUrlWithPort()
+    : '';
+
 return [
 
     /*
@@ -18,7 +23,7 @@ return [
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s',
         'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort(),
+        $appUrlWithPort,
         // Sanctum::currentRequestHost(),
     ))),
 

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
-use App\Models\Supplier;
+use App\Models\Branch;
 use App\Models\BranchStock;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class ProductController extends Controller
         $user = $request->user();
         $branchId = $user->branch_id;
 
-        $query = Product::with(['category', 'supplier'])
+        $query = Product::with(['category', 'branch'])
             ->withCount(['branchStocks as stock_quantity' => function ($q) use ($branchId) {
                 $q->where('branch_id', $branchId)->select(DB::raw('COALESCE(SUM(quantity), 0)'));
             }]);
@@ -65,9 +65,9 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::where('type', 'product')->where('is_active', true)->get();
-        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
+        $branches = Branch::where('is_active', true)->orderBy('name')->get();
 
-        return view('products.create', compact('categories', 'suppliers'));
+        return view('products.create', compact('categories', 'branches'));
     }
 
     public function store(Request $request)
@@ -78,7 +78,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
-            'supplier_id' => 'nullable|exists:suppliers,id',
+            'branch_id' => 'nullable|exists:branches,id',
             'cost' => 'required|numeric|min:0',
             'price_retail' => 'required|numeric|min:0',
             'price_wholesale' => 'nullable|numeric|min:0',
@@ -146,7 +146,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        $product->load(['category', 'supplier', 'branchStocks.branch']);
+        $product->load(['category', 'branch', 'branchStocks.branch']);
 
         // Get stock movements
         $movements = StockMovement::where('movable_type', Product::class)
@@ -162,9 +162,9 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::where('type', 'product')->where('is_active', true)->get();
-        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
+        $branches = Branch::where('is_active', true)->orderBy('name')->get();
 
-        return view('products.edit', compact('product', 'categories', 'suppliers'));
+        return view('products.edit', compact('product', 'categories', 'branches'));
     }
 
     public function update(Request $request, Product $product)
@@ -175,7 +175,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
-            'supplier_id' => 'nullable|exists:suppliers,id',
+            'branch_id' => 'nullable|exists:branches,id',
             'cost' => 'required|numeric|min:0',
             'price_retail' => 'required|numeric|min:0',
             'price_wholesale' => 'nullable|numeric|min:0',

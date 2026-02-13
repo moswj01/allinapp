@@ -11,6 +11,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\RolePermissionController;
 
 // Authentication Routes
 // Public Tracking (no auth)
@@ -69,12 +71,28 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales/{sale}/receipt', [SaleController::class, 'receipt'])->name('sales.receipt');
 
     // Admin Routes
-    Route::middleware('permission:users.*')->group(function () {
+    Route::middleware(\App\Http\Middleware\CheckPermission::class . ':users.*')->group(function () {
         Route::resource('users', UserController::class);
     });
 
-    Route::middleware('permission:branches.*')->group(function () {
+    Route::middleware(\App\Http\Middleware\CheckPermission::class . ':branches.*')->group(function () {
         Route::resource('branches', BranchController::class);
+    });
+
+    // Settings
+    Route::middleware(\App\Http\Middleware\CheckPermission::class . ':settings.*')->group(function () {
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+    });
+
+    // Roles & Permissions
+    Route::middleware(\App\Http\Middleware\CheckPermission::class . ':roles.*')->group(function () {
+        Route::get('/roles', [RolePermissionController::class, 'index'])->name('roles.index');
+        Route::get('/roles/create', [RolePermissionController::class, 'create'])->name('roles.create');
+        Route::post('/roles', [RolePermissionController::class, 'store'])->name('roles.store');
+        Route::get('/roles/{role}/edit', [RolePermissionController::class, 'edit'])->name('roles.edit');
+        Route::put('/roles/{role}', [RolePermissionController::class, 'update'])->name('roles.update');
+        Route::delete('/roles/{role}', [RolePermissionController::class, 'destroy'])->name('roles.destroy');
     });
 
     // Warehouse / Stocks Management (Web view)

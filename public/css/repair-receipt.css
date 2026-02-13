@@ -1,0 +1,154 @@
+:root {
+    --brand: #111827;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --bg: #f9fafb;
+    --accent: #0ea5e9;
+}
+
+body {
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+    color: var(--brand);
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.container {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.panel {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px;
+    padding-bottom: 10px;
+    background: #fff;
+    gap: 12px;
+    align-items: start;
+}
+
+.pill-black {
+    display: inline-block;
+    background: #0a0a0a;
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-weight: 800;
+    font-size: 12px;
+}
+
+.meta {
+    text-align: right;
+}
+
+.stamp {
+    display: inline-block;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #374151;
+    background: #fff;
+}
+
+.sub {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.section {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg);
+}
+
+.section.white {
+    background: #fff;
+}
+
+.section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--brand);
+    margin-bottom: 6px;
+}
+
+.row {
+    display: flex;
+    align-items: flex-start;
+    margin: 6px 0;
+}
+
+.label {
+    width: 130px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.value {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.terms {
+    font-size: 11px;
+    color: #374151;
+    line-height: 1.6;
+}
+
+.footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 12px;
+}
+
+.sign {
+    height: 52px;
+    border-bottom: 1px dashed #9ca3af;
+    margin-bottom: 4px;
+    background: #fff;
+}
+
+.print-btn {
+    display: inline-block;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--brand);
+    background: #fff;
+    font-size: 12px;
+}
+
+.barcode {
+    display: inline-block;
+    padding: 6px 8px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: #fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .container {
+        max-width: unset;
+    }
+}

@@ -69,10 +69,10 @@
                                 <dt class="text-gray-500">หน่วย</dt>
                                 <dd class="font-medium">{{ $product->unit ?? 'ชิ้น' }}</dd>
                             </div>
-                            @if($product->supplier)
+                            @if($product->branch)
                             <div>
-                                <dt class="text-gray-500">ซัพพลายเออร์</dt>
-                                <dd class="font-medium">{{ $product->supplier->name }}</dd>
+                                <dt class="text-gray-500">คลังสินค้า</dt>
+                                <dd class="font-medium">{{ $product->branch->name }}</dd>
                             </div>
                             @endif
                         </dl>

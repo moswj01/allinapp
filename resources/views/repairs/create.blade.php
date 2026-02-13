@@ -280,11 +280,11 @@
 <script>
 function customerLookup() {
     return {
-        name: @json(old('customer_name')),
-        phone: @json(old('customer_phone')),
-        lineId: @json(old('customer_line_id')),
-        email: @json(old('customer_email')),
-        address: @json(old('customer_address')),
+        name: "{{ old('customer_name') ?? '' }}",
+        phone: "{{ old('customer_phone') ?? '' }}",
+        lineId: "{{ old('customer_line_id') ?? '' }}",
+        email: "{{ old('customer_email') ?? '' }}",
+        address: "{{ old('customer_address') ?? '' }}",
         matchedExact: false,
         nameSuggestions: [],
         error: '',
@@ -303,7 +303,11 @@ function customerLookup() {
         async search(q) {
             if (!q || q.length < 2) return [];
             try {
-                const res = await fetch(`{{ route('api.customer-search') }}?q=${encodeURIComponent(q)}`, {
+                const res = await fetch(`{{ \Illuminate\Support\Facades\Route::has('api.customer-search') 
+                    ? route('api.customer-search') 
+                    : (\Illuminate\Support\Facades\Route::has('api.customers.search') 
+                        ? route('api.customers.search') 
+                        : url('/api/customer-search')) }}?q=${encodeURIComponent(q)}`, {
                     headers: {
                         'Accept': 'application/json'
                     }

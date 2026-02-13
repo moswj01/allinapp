@@ -120,7 +120,7 @@
                             ฿{{ number_format($product->cost, 0) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 text-right">
-                            ฿{{ number_format($product->price_retail, 0) }}
+                            ฿{{ number_format($product->retail_price, 0) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             @php

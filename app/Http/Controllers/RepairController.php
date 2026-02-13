@@ -72,12 +72,8 @@ class RepairController extends Controller
         $count = Repair::whereDate('created_at', $today)->count() + 1;
         $repairNumber = 'REP-' . $today->format('ymd') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
 
-        // Exclude non-repair-only fields from mass assignment
-        $repairData = $validated;
-        unset($repairData['customer_email'], $repairData['customer_address']);
-
         $repair = Repair::create([
-            ...$repairData,
+            ...$validated,
             'repair_number' => $repairNumber,
             'branch_id' => $user->branch_id,
             'received_by' => $user->id,

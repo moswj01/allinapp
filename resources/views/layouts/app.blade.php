@@ -133,6 +133,18 @@
                     <i class="fas fa-store w-5 mr-3"></i>
                     สาขา
                 </a>
+
+                <div class="pt-2 pb-1">
+                    <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">ตั้งค่า</p>
+                </div>
+                <a href="{{ route('settings.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-cog w-5 mr-3"></i>
+                    การตั้งค่าระบบ
+                </a>
+                <a href="{{ route('roles.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('roles.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-user-shield w-5 mr-3"></i>
+                    จัดการสิทธิ์
+                </a>
                 @endif
             </nav>
         </aside>

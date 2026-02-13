@@ -13,7 +13,7 @@ class Product extends Model
         'sku',
         'name',
         'category_id',
-        'supplier_id',
+        'branch_id',
         'description',
         'unit',
         'cost',
@@ -48,9 +48,9 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function supplier(): BelongsTo
+    public function branch(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Branch::class);
     }
 
     public function branchStocks(): MorphMany

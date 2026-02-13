@@ -16,6 +16,8 @@ class Repair extends Model
         'customer_name',
         'customer_phone',
         'customer_line_id',
+        'customer_email',
+        'customer_address',
         'device_type',
         'device_brand',
         'device_model',
