@@ -21,9 +21,20 @@ class SetTenant
             return $next($request);
         }
 
-        // Super admin — no tenant scoping (they manage all tenants)
+        // Super admin — use their own tenant (system-admin) so they can
+        // use all store features, while also having super-admin powers.
         if ($user->is_super_admin) {
-            Tenant::setCurrent(null);
+            if ($user->tenant_id) {
+                $tenant = Tenant::withoutGlobalScopes()->find($user->tenant_id);
+                Tenant::setCurrent($tenant);
+            } else {
+                Tenant::setCurrent(null);
+            }
+
+            // Share tenant data with all views
+            view()->share('currentTenant', Tenant::current());
+            view()->share('isSuperAdmin', true);
+
             return $next($request);
         }
 

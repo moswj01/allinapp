@@ -30,6 +30,8 @@ use App\Http\Controllers\TenantRegistrationController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdmin\TenantController;
 use App\Http\Controllers\SuperAdmin\PlanController;
+use App\Http\Controllers\TenantOrderController;
+use App\Http\Controllers\SuperAdmin\TenantOrderController as SuperAdminTenantOrderController;
 
 // =====================================================
 // SaaS Landing & Registration (Public)
@@ -61,6 +63,13 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::post('/tenants/{tenant}/login-as', [TenantController::class, 'loginAs'])->name('tenants.login-as');
     Route::get('/switch-back', [TenantController::class, 'switchBack'])->name('switch-back');
     Route::resource('plans', PlanController::class);
+
+    // Tenant Orders (ออเดอร์จากร้านค้า)
+    Route::get('/tenant-orders', [SuperAdminTenantOrderController::class, 'index'])->name('tenant-orders.index');
+    Route::get('/tenant-orders/{tenantOrder}', [SuperAdminTenantOrderController::class, 'show'])->name('tenant-orders.show');
+    Route::post('/tenant-orders/{tenantOrder}/confirm', [SuperAdminTenantOrderController::class, 'confirm'])->name('tenant-orders.confirm');
+    Route::post('/tenant-orders/{tenantOrder}/ship', [SuperAdminTenantOrderController::class, 'ship'])->name('tenant-orders.ship');
+    Route::post('/tenant-orders/{tenantOrder}/cancel', [SuperAdminTenantOrderController::class, 'cancel'])->name('tenant-orders.cancel');
 });
 
 // =====================================================
@@ -251,6 +260,14 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::post('/finance/daily-settlement', [FinanceController::class, 'dailySettlementStore'])->name('finance.daily-settlement.store');
     Route::get('/finance/daily-settlement/{dailySettlement}', [FinanceController::class, 'dailySettlementShow'])->name('finance.daily-settlement.show');
     Route::post('/finance/daily-settlement/{dailySettlement}/approve', [FinanceController::class, 'dailySettlementApprove'])->name('finance.daily-settlement.approve');
+
+    // Tenant Orders - สั่งสินค้าจากร้านกลาง
+    Route::get('/tenant-orders', [TenantOrderController::class, 'index'])->name('tenant-orders.index');
+    Route::get('/tenant-orders/create', [TenantOrderController::class, 'create'])->name('tenant-orders.create');
+    Route::post('/tenant-orders', [TenantOrderController::class, 'store'])->name('tenant-orders.store');
+    Route::get('/tenant-orders/{tenantOrder}', [TenantOrderController::class, 'show'])->name('tenant-orders.show');
+    Route::post('/tenant-orders/{tenantOrder}/receive', [TenantOrderController::class, 'receive'])->name('tenant-orders.receive');
+    Route::post('/tenant-orders/{tenantOrder}/cancel', [TenantOrderController::class, 'cancel'])->name('tenant-orders.cancel');
 
     // Audit Logs (ประวัติการใช้งาน)
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

@@ -172,6 +172,12 @@
                     <i class="fas fa-paper-plane w-5 mr-3"></i>
                     {{ Auth::user()->branch && Auth::user()->branch->is_main ? 'คำสั่งซื้อ' : 'สั่งซื้อจากสาขาใหญ่' }}
                 </a>
+                @if(isset($currentTenant) && $currentTenant->slug !== 'system-admin')
+                <a href="{{ route('tenant-orders.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('tenant-orders.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-shopping-cart w-5 mr-3"></i>
+                    สั่งสินค้าจากร้านกลาง
+                </a>
+                @endif
 
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">จัดซื้อ</p>

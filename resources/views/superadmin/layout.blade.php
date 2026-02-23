@@ -62,6 +62,10 @@
                     <i class="fas fa-box-open w-5 mr-3"></i>
                     <span x-show="sidebarOpen">จัดการแพ็กเกจ</span>
                 </a>
+                <a href="{{ route('superadmin.tenant-orders.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('superadmin.tenant-orders.*') ? 'bg-amber-600 text-white' : 'text-gray-300 hover:bg-gray-800' }}">
+                    <i class="fas fa-shopping-cart w-5 mr-3"></i>
+                    <span x-show="sidebarOpen">ออเดอร์จากร้านค้า</span>
+                </a>
 
                 <div class="pt-3 border-t border-gray-800 mt-3">
                     <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-3 text-sm rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
