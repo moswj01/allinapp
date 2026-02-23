@@ -109,17 +109,9 @@
 <script>
 function grForm() {
     return {
-        selectedPo: '{{ $selectedPo->id ?? '
-        ' }}',
-        poItems: @json($selectedPo ? $selectedPo - > items - > map(fn($i) => ['id' => $i - > id, 'item_name' => $i - >
-            item_name, 'quantity' => $i - > quantity, 'received_quantity' => $i - > received_quantity,
-            'qty_to_receive' => $i - > quantity - $i - > received_quantity
-        ]) : []),
-        allPos: @json($purchaseOrders - > mapWithKeys(fn($po) => [$po - > id => $po - > items - > map(fn($i) => ['id' =>
-            $i - > id, 'item_name' => $i - > item_name, 'quantity' => $i - > quantity,
-            'received_quantity' => $i - > received_quantity, 'qty_to_receive' => $i - > quantity -
-            $i - > received_quantity
-        ])])),
+        selectedPo: '{{ $selectedPo->id ?? '' }}',
+        poItems: @json($selectedPo ? $selectedPo->items->map(fn($i) => ['id' => $i->id, 'item_name' => $i->item_name, 'quantity' => $i->quantity, 'received_quantity' => $i->received_quantity, 'qty_to_receive' => $i->quantity - $i->received_quantity]) : []),
+        allPos: @json($purchaseOrders->mapWithKeys(fn($po) => [$po->id => $po->items->map(fn($i) => ['id' => $i->id, 'item_name' => $i->item_name, 'quantity' => $i->quantity, 'received_quantity' => $i->received_quantity, 'qty_to_receive' => $i->quantity - $i->received_quantity])])),
         loadPoItems() {
             this.poItems = this.allPos[this.selectedPo] || [];
         }
