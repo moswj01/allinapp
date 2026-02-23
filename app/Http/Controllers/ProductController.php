@@ -524,4 +524,63 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')->with('success', $msg);
     }
+
+    /**
+     * Export products to CSV
+     */
+    public function exportCsv(Request $request)
+    {
+        $user = $request->user();
+        $branchId = $user->branch_id;
+
+        $query = Product::with(['category', 'supplier'])
+            ->where('is_active', true);
+
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->input('category'));
+        }
+
+        $products = $query->orderBy('name')->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="products_export_' . date('Ymd_His') . '.csv"',
+        ];
+
+        $callback = function () use ($products, $branchId) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, [
+                'sku', 'barcode', 'name', 'category', 'supplier', 'description', 'unit',
+                'cost', 'retail_price', 'wholesale_price', 'vip_price', 'partner_price',
+                'stock', 'reorder_point', 'is_active'
+            ]);
+
+            foreach ($products as $product) {
+                $stock = $product->branchStocks()->where('branch_id', $branchId)->sum('quantity');
+                fputcsv($handle, [
+                    $product->sku,
+                    $product->barcode,
+                    $product->name,
+                    $product->category?->name,
+                    $product->supplier?->name,
+                    $product->description,
+                    $product->unit,
+                    $product->cost,
+                    $product->retail_price,
+                    $product->wholesale_price,
+                    $product->vip_price,
+                    $product->partner_price,
+                    $stock,
+                    $product->reorder_point,
+                    $product->is_active ? 'Y' : 'N',
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

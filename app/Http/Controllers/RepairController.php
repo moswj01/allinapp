@@ -619,4 +619,236 @@ class RepairController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Export repairs to CSV
+     */
+    public function exportCsv(Request $request)
+    {
+        $user = $request->user();
+        $branchId = $user->branch_id;
+
+        $query = Repair::where('branch_id', $branchId)
+            ->with(['customer', 'technician']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->input('from'));
+        }
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->input('to'));
+        }
+
+        $repairs = $query->orderBy('created_at', 'desc')->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="repairs_export_' . date('Ymd_His') . '.csv"',
+        ];
+
+        $callback = function () use ($repairs) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, [
+                'repair_number', 'date', 'customer_name', 'customer_phone', 'customer_line_id',
+                'device_type', 'device_brand', 'device_model', 'device_serial', 'device_imei',
+                'problem_description', 'status', 'priority', 'technician',
+                'estimated_cost', 'service_cost', 'parts_cost', 'total_cost', 'discount',
+                'deposit', 'paid_amount', 'payment_status',
+                'warranty_days', 'warranty_expires_at', 'internal_notes'
+            ]);
+
+            foreach ($repairs as $repair) {
+                fputcsv($handle, [
+                    $repair->repair_number,
+                    $repair->created_at->format('Y-m-d H:i'),
+                    $repair->customer_name,
+                    $repair->customer_phone,
+                    $repair->customer_line_id,
+                    $repair->device_type,
+                    $repair->device_brand,
+                    $repair->device_model,
+                    $repair->device_serial,
+                    $repair->device_imei,
+                    $repair->problem_description,
+                    $repair->status,
+                    $repair->priority,
+                    $repair->technician?->name,
+                    $repair->estimated_cost,
+                    $repair->service_cost,
+                    $repair->parts_cost,
+                    $repair->total_cost,
+                    $repair->discount,
+                    $repair->deposit,
+                    $repair->paid_amount,
+                    $repair->payment_status,
+                    $repair->warranty_days,
+                    $repair->warranty_expires_at,
+                    $repair->internal_notes,
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Download repair import template
+     */
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="repair_import_template.csv"',
+        ];
+
+        $callback = function () {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, [
+                'customer_name', 'customer_phone', 'customer_line_id', 'customer_email', 'customer_address',
+                'device_type', 'device_brand', 'device_model', 'device_color', 'device_serial', 'device_imei',
+                'device_password', 'device_condition', 'device_accessories',
+                'problem_description', 'priority', 'estimated_cost', 'deposit', 'internal_notes'
+            ]);
+
+            fputcsv($handle, [
+                'สมชาย ใจดี', '0891234567', '@somchai', 'somchai@email.com', '123 ถ.สุขุมวิท กรุงเทพฯ',
+                'smartphone', 'Apple', 'iPhone 15 Pro', 'สีดำ', 'C39X1234567', '351234567890123',
+                '1234', 'จอมีรอยขีดข่วนเล็กน้อย', 'สายชาร์จ, เคส',
+                'จอแตก เปลี่ยนจอใหม่', 'normal', '3500', '1000', 'ลูกค้าประจำ'
+            ]);
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Import repairs from CSV
+     */
+    public function importCsv(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        $user = $request->user();
+        $branchId = $user->branch_id;
+        $file = $request->file('csv_file');
+        $handle = fopen($file->getRealPath(), 'r');
+
+        // Read header
+        $header = fgetcsv($handle);
+        if (!$header) {
+            fclose($handle);
+            return redirect()->back()->with('error', 'ไฟล์ CSV ไม่ถูกต้อง');
+        }
+
+        // Clean BOM
+        $header[0] = preg_replace('/\x{FEFF}/u', '', $header[0]);
+        $header = array_map(fn($h) => strtolower(trim($h)), $header);
+
+        $required = ['customer_name', 'customer_phone', 'problem_description'];
+        $missing = array_diff($required, $header);
+        if (!empty($missing)) {
+            fclose($handle);
+            return redirect()->back()->with('error', 'คอลัมน์จำเป็นขาดหาย: ' . implode(', ', $missing));
+        }
+
+        $imported = 0;
+        $skipped = 0;
+
+        DB::beginTransaction();
+        try {
+            while (($row = fgetcsv($handle)) !== false) {
+                if (count($row) < count($header)) {
+                    $row = array_pad($row, count($header), '');
+                }
+
+                $data = array_combine($header, $row);
+                $data = array_map('trim', $data);
+
+                if (empty($data['customer_name']) || empty($data['customer_phone']) || empty($data['problem_description'])) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Find or create customer
+                $customer = Customer::where('phone', $data['customer_phone'])->first();
+                if (!$customer) {
+                    $customer = Customer::create([
+                        'code' => 'CUS-' . Str::random(6),
+                        'name' => $data['customer_name'],
+                        'phone' => $data['customer_phone'],
+                        'line_id' => $data['customer_line_id'] ?? null,
+                        'email' => $data['customer_email'] ?? null,
+                        'address' => $data['customer_address'] ?? null,
+                        'customer_type' => 'retail',
+                        'branch_id' => $branchId,
+                        'is_active' => true,
+                    ]);
+                }
+
+                // Generate repair number
+                $today = now()->format('Ymd');
+                $lastRepair = Repair::withoutGlobalScopes()
+                    ->where('repair_number', 'like', "RPR-{$today}-%")
+                    ->orderByDesc('repair_number')
+                    ->first();
+                $seq = $lastRepair ? (int) substr($lastRepair->repair_number, -4) + 1 : 1;
+                $repairNumber = 'RPR-' . $today . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+
+                $priority = in_array($data['priority'] ?? '', ['normal', 'urgent', 'critical']) ? $data['priority'] : 'normal';
+
+                Repair::create([
+                    'repair_number' => $repairNumber,
+                    'branch_id' => $branchId,
+                    'customer_id' => $customer->id,
+                    'customer_name' => $data['customer_name'],
+                    'customer_phone' => $data['customer_phone'],
+                    'customer_line_id' => $data['customer_line_id'] ?? null,
+                    'customer_email' => $data['customer_email'] ?? null,
+                    'customer_address' => $data['customer_address'] ?? null,
+                    'device_type' => $data['device_type'] ?? null,
+                    'device_brand' => $data['device_brand'] ?? null,
+                    'device_model' => $data['device_model'] ?? null,
+                    'device_color' => $data['device_color'] ?? null,
+                    'device_serial' => $data['device_serial'] ?? null,
+                    'device_imei' => $data['device_imei'] ?? null,
+                    'device_password' => $data['device_password'] ?? null,
+                    'device_condition' => $data['device_condition'] ?? null,
+                    'device_accessories' => $data['device_accessories'] ?? null,
+                    'problem_description' => $data['problem_description'],
+                    'priority' => $priority,
+                    'status' => Repair::STATUS_PENDING,
+                    'payment_status' => 'unpaid',
+                    'estimated_cost' => (float) ($data['estimated_cost'] ?? 0),
+                    'deposit' => (float) ($data['deposit'] ?? 0),
+                    'received_by' => $user->id,
+                    'internal_notes' => $data['internal_notes'] ?? null,
+                ]);
+
+                $imported++;
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            fclose($handle);
+            return redirect()->back()->with('error', 'เกิดข้อผิดพลาด: ' . $e->getMessage());
+        }
+
+        fclose($handle);
+
+        $msg = "Import เสร็จ! นำเข้า {$imported} | ข้าม {$skipped} รายการ";
+        return redirect()->route('repairs.index')->with('success', $msg);
+    }
 }

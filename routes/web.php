@@ -87,6 +87,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/repairs/create', [RepairController::class, 'create'])->name('repairs.create');
     Route::get('/repairs/part-approvals', [RepairController::class, 'partApprovals'])->name('repairs.part-approvals');
     Route::get('/repairs/part-report', [RepairController::class, 'partReport'])->name('repairs.part-report');
+    Route::get('/repairs-export-csv', [RepairController::class, 'exportCsv'])->name('repairs.export-csv');
+    Route::post('/repairs-import-csv', [RepairController::class, 'importCsv'])->name('repairs.import-csv');
+    Route::get('/repairs-import-template', [RepairController::class, 'downloadTemplate'])->name('repairs.import-template');
 
     // Reports
     Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
@@ -113,15 +116,22 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/api/products/barcode', [ProductController::class, 'findByBarcode'])->name('api.products.barcode');
     Route::post('/products-import-csv', [ProductController::class, 'importCsv'])->name('products.import-csv');
     Route::get('/products-import-template', [ProductController::class, 'downloadTemplate'])->name('products.import-template');
+    Route::get('/products-export-csv', [ProductController::class, 'exportCsv'])->name('products.export-csv');
 
     // Categories
     Route::resource('categories', CategoryController::class);
+    Route::get('/categories-export-csv', [CategoryController::class, 'exportCsv'])->name('categories.export-csv');
+    Route::post('/categories-import-csv', [CategoryController::class, 'importCsv'])->name('categories.import-csv');
+    Route::get('/categories-import-template', [CategoryController::class, 'downloadTemplate'])->name('categories.import-template');
 
     // Suppliers
     Route::resource('suppliers', SupplierController::class);
 
     // Customers
     Route::resource('customers', CustomerController::class);
+    Route::get('/customers-export-csv', [CustomerController::class, 'exportCsv'])->name('customers.export-csv');
+    Route::post('/customers-import-csv', [CustomerController::class, 'importCsv'])->name('customers.import-csv');
+    Route::get('/customers-import-template', [CustomerController::class, 'downloadTemplate'])->name('customers.import-template');
 
     // Sales / POS
     Route::get('/pos', [SaleController::class, 'pos'])->name('pos');

@@ -12,6 +12,10 @@
             <p class="text-gray-500">{{ $products->total() }} รายการ</p>
         </div>
         <div class="flex items-center gap-2">
+            <a href="{{ route('products.export-csv') }}"
+                class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                <i class="fas fa-download mr-2"></i>Export CSV
+            </a>
             <button onclick="document.getElementById('importModal').classList.remove('hidden')"
                 class="inline-flex items-center px-4 py-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors">
                 <i class="fas fa-file-csv mr-2"></i>Import CSV

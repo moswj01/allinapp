@@ -7,10 +7,20 @@
 <div x-data="{ showStatusModal: false, selectedRepairId: null, selectedStatus: '', statusAction: '' }" class="space-y-4">
     <!-- Header Actions -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <a href="{{ route('repairs.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-            <i class="fas fa-plus mr-2"></i>
-            รับงานซ่อมใหม่
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('repairs.export-csv', request()->only('status', 'from', 'to')) }}"
+                class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                <i class="fas fa-download mr-2"></i>Export CSV
+            </a>
+            <button onclick="document.getElementById('importModal').classList.remove('hidden')"
+                class="inline-flex items-center px-4 py-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors">
+                <i class="fas fa-file-csv mr-2"></i>Import CSV
+            </button>
+            <a href="{{ route('repairs.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>
+                รับงานซ่อมใหม่
+            </a>
+        </div>
     </div>
 
     <!-- Filters -->
@@ -216,6 +226,76 @@
                     <button type="submit"
                         class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                         <i class="fas fa-check mr-1"></i>อัปเดต
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import CSV Modal -->
+<div id="importModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-black bg-opacity-50" onclick="document.getElementById('importModal').classList.add('hidden')"></div>
+        <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">
+                    <i class="fas fa-file-csv text-green-600 mr-2"></i>Import งานซ่อมจาก CSV
+                </h3>
+                <button onclick="document.getElementById('importModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('repairs.import-csv') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">เลือกไฟล์ CSV</label>
+                    <input type="file" name="csv_file" accept=".csv,.txt" required
+                        class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-2 focus:outline-none">
+                    <p class="text-xs text-gray-500 mt-1">รองรับไฟล์ .csv ขนาดไม่เกิน 5MB</p>
+                </div>
+
+                <div class="mb-4 bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm font-medium text-gray-700 mb-2">คอลัมน์ที่รองรับ:</p>
+                    <div class="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                        <span><strong class="text-red-500">*</strong> customer_name</span>
+                        <span><strong class="text-red-500">*</strong> customer_phone</span>
+                        <span>customer_line_id</span>
+                        <span>customer_email</span>
+                        <span>customer_address</span>
+                        <span>device_type</span>
+                        <span>device_brand</span>
+                        <span>device_model</span>
+                        <span>device_color</span>
+                        <span>device_serial</span>
+                        <span>device_imei</span>
+                        <span>device_password</span>
+                        <span>device_condition</span>
+                        <span>device_accessories</span>
+                        <span><strong class="text-red-500">*</strong> problem_description</span>
+                        <span>priority (normal/urgent/critical)</span>
+                        <span>estimated_cost</span>
+                        <span>deposit</span>
+                        <span>internal_notes</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        <strong class="text-red-500">*</strong> จำเป็น | ลูกค้าใหม่จะถูกสร้างอัตโนมัติ | สถานะเริ่มต้น = รอซ่อม
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <a href="{{ route('repairs.import-template') }}" class="text-sm text-indigo-600 hover:text-indigo-800">
+                        <i class="fas fa-download mr-1"></i>ดาวน์โหลดไฟล์ตัวอย่าง
+                    </a>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">ยกเลิก</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        <i class="fas fa-upload mr-1"></i>Import
                     </button>
                 </div>
             </form>

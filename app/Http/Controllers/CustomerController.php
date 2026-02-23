@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Repair;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CustomerController extends Controller
@@ -173,5 +174,170 @@ class CustomerController extends Controller
             ->get(['id', 'code', 'name', 'phone', 'email', 'line_id', 'address', 'company_name', 'customer_type']);
 
         return response()->json($customers);
+    }
+
+    /**
+     * Export customers to CSV
+     */
+    public function exportCsv(Request $request)
+    {
+        $customers = Customer::orderBy('name')->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="customers_export_' . date('Ymd_His') . '.csv"',
+        ];
+
+        $callback = function () use ($customers) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, [
+                'code', 'name', 'phone', 'email', 'line_id', 'facebook_id',
+                'customer_type', 'address', 'tax_id', 'company_name', 'notes', 'is_active'
+            ]);
+
+            foreach ($customers as $customer) {
+                fputcsv($handle, [
+                    $customer->code,
+                    $customer->name,
+                    $customer->phone,
+                    $customer->email,
+                    $customer->line_id,
+                    $customer->facebook_id,
+                    $customer->customer_type,
+                    $customer->address,
+                    $customer->tax_id,
+                    $customer->company_name,
+                    $customer->notes,
+                    $customer->is_active ? 'Y' : 'N',
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Download customer import template
+     */
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="customer_import_template.csv"',
+        ];
+
+        $callback = function () {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, [
+                'name', 'phone', 'email', 'line_id', 'facebook_id',
+                'customer_type', 'address', 'tax_id', 'company_name', 'notes'
+            ]);
+
+            fputcsv($handle, [
+                'สมชาย ใจดี', '0891234567', 'somchai@email.com', '@somchai', 'fb.com/somchai',
+                'retail', '123 ถ.สุขุมวิท กรุงเทพฯ', '1234567890123', 'บริษัท เอบีซี จำกัด', 'ลูกค้าประจำ'
+            ]);
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Import customers from CSV
+     */
+    public function importCsv(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        $user = $request->user();
+        $branchId = $user->branch_id;
+        $file = $request->file('csv_file');
+        $handle = fopen($file->getRealPath(), 'r');
+
+        $header = fgetcsv($handle);
+        if (!$header) {
+            fclose($handle);
+            return redirect()->back()->with('error', 'ไฟล์ CSV ไม่ถูกต้อง');
+        }
+
+        $header[0] = preg_replace('/\x{FEFF}/u', '', $header[0]);
+        $header = array_map(fn($h) => strtolower(trim($h)), $header);
+
+        $required = ['name', 'phone'];
+        $missing = array_diff($required, $header);
+        if (!empty($missing)) {
+            fclose($handle);
+            return redirect()->back()->with('error', 'คอลัมน์จำเป็นขาดหาย: ' . implode(', ', $missing));
+        }
+
+        $imported = 0;
+        $updated = 0;
+        $skipped = 0;
+
+        DB::beginTransaction();
+        try {
+            while (($row = fgetcsv($handle)) !== false) {
+                if (count($row) < count($header)) {
+                    $row = array_pad($row, count($header), '');
+                }
+
+                $data = array_combine($header, $row);
+                $data = array_map('trim', $data);
+
+                if (empty($data['name']) || empty($data['phone'])) {
+                    $skipped++;
+                    continue;
+                }
+
+                $validTypes = ['retail', 'wholesale', 'technician', 'vip'];
+                $type = in_array($data['customer_type'] ?? '', $validTypes) ? $data['customer_type'] : 'retail';
+
+                $customerData = [
+                    'name' => $data['name'],
+                    'phone' => $data['phone'],
+                    'email' => $data['email'] ?? null,
+                    'line_id' => $data['line_id'] ?? null,
+                    'facebook_id' => $data['facebook_id'] ?? null,
+                    'customer_type' => $type,
+                    'address' => $data['address'] ?? null,
+                    'tax_id' => $data['tax_id'] ?? null,
+                    'company_name' => $data['company_name'] ?? null,
+                    'notes' => $data['notes'] ?? null,
+                    'is_active' => true,
+                ];
+
+                $existing = Customer::where('phone', $data['phone'])->first();
+                if ($existing) {
+                    $existing->update($customerData);
+                    $updated++;
+                } else {
+                    $customerData['code'] = 'CUS-' . Str::random(6);
+                    $customerData['branch_id'] = $branchId;
+                    Customer::create($customerData);
+                    $imported++;
+                }
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            fclose($handle);
+            return redirect()->back()->with('error', 'เกิดข้อผิดพลาด: ' . $e->getMessage());
+        }
+
+        fclose($handle);
+
+        $msg = "Import เสร็จ! เพิ่มใหม่ {$imported} | อัปเดท {$updated} | ข้าม {$skipped} ราย";
+        return redirect()->route('customers.index')->with('success', $msg);
     }
 }
