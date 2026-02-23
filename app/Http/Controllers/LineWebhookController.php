@@ -388,7 +388,7 @@ class LineWebhookController extends Controller
             Setting::set($key, $value, $type, 'line_oa', null);
         }
 
-        return redirect()->route('line-oa.settings')
+        return redirect()->route('line-oa.index')
             ->with('success', 'บันทึกการตั้งค่า LINE OA เรียบร้อย');
     }
 
