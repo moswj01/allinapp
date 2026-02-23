@@ -11,13 +11,12 @@ class ARPayment extends Model
 
     protected $fillable = [
         'accounts_receivable_id',
-        'payment_number',
-        'payment_date',
+        'user_id',
         'amount',
         'payment_method',
-        'payment_ref',
+        'reference_number',
         'notes',
-        'received_by',
+        'payment_date',
     ];
 
     protected $casts = [

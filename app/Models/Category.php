@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\BelongsToTenant;
+
 
 class Category extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'name',
         'type',
@@ -23,18 +27,8 @@ class Category extends Model
         return $this->hasMany(Product::class);
     }
 
-    public function parts(): HasMany
-    {
-        return $this->hasMany(Part::class);
-    }
-
     public function scopeForProducts($query)
     {
         return $query->where('type', 'product');
-    }
-
-    public function scopeForParts($query)
-    {
-        return $query->where('type', 'part');
     }
 }

@@ -180,9 +180,9 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">สภาพเครื่องก่อนซ่อม</label>
-                    <textarea name="accessories" rows="2"
+                    <textarea name="device_condition" rows="2"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        placeholder="รอยขีดข่วน, ฝาหลังแตก, อุปกรณ์ที่รับมาพร้อม">{{ old('accessories', $repair->accessories) }}</textarea>
+                        placeholder="รอยขีดข่วน, ฝาหลังแตก, อุปกรณ์ที่รับมาพร้อม">{{ old('device_condition', $repair->device_condition) }}</textarea>
                 </div>
             </div>
         </div>
@@ -199,38 +199,27 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">ค่าบริการประเมิน</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-500">฿</span>
-                        <input type="number" name="estimated_cost" value="{{ old('estimated_cost', $repair->estimated_cost) }}" min="0"
+                        <input type="number" name="estimated_cost" value="{{ old('estimated_cost', $repair->estimated_cost ?? 0) }}" min="0"
                             class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             placeholder="0">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ค่าบริการจริง</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ค่าบริการ</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-500">฿</span>
-                        <input type="number" name="service_cost" value="{{ old('service_cost', $repair->service_cost) }}" min="0"
+                        <input type="number" name="service_cost" value="{{ old('service_cost', $repair->service_cost ?? 0) }}" min="0"
                             class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             placeholder="0">
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ค่าอะไหล่</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-2 text-gray-500">฿</span>
-                        <input type="number" name="parts_cost" value="{{ old('parts_cost', $repair->parts_cost) }}" min="0"
-                            class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-gray-50"
-                            readonly>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1">* คำนวณจากอะไหล่อัตโนมัติ</p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ส่วนลด</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-500">฿</span>
-                        <input type="number" name="discount" value="{{ old('discount', $repair->discount) }}" min="0"
+                        <input type="number" name="discount" value="{{ old('discount', $repair->discount ?? 0) }}" min="0"
                             class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             placeholder="0">
                     </div>
@@ -240,7 +229,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">มัดจำ</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-500">฿</span>
-                        <input type="number" name="deposit" value="{{ old('deposit', $repair->deposit) }}" min="0"
+                        <input type="number" name="deposit" value="{{ old('deposit', $repair->deposit ?? 0) }}" min="0"
                             class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             placeholder="0">
                     </div>
@@ -305,8 +294,8 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">กำหนดนัดรับ</label>
-                    <input type="datetime-local" name="due_date"
-                        value="{{ old('due_date', $repair->due_date ? $repair->due_date->format('Y-m-d\TH:i') : '') }}"
+                    <input type="datetime-local" name="estimated_completion"
+                        value="{{ old('estimated_completion', $repair->estimated_completion ? $repair->estimated_completion->format('Y-m-d\TH:i') : '') }}"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                 </div>
             </div>

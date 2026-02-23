@@ -11,14 +11,20 @@
             <h2 class="text-2xl font-bold text-gray-900">สินค้าทั้งหมด</h2>
             <p class="text-gray-500">{{ $products->total() }} รายการ</p>
         </div>
-        <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-            <i class="fas fa-plus mr-2"></i>เพิ่มสินค้าใหม่
-        </a>
+        <div class="flex items-center gap-2">
+            <button onclick="document.getElementById('importModal').classList.remove('hidden')"
+                class="inline-flex items-center px-4 py-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors">
+                <i class="fas fa-file-csv mr-2"></i>Import CSV
+            </button>
+            <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>เพิ่มสินค้าใหม่
+            </a>
+        </div>
     </div>
 
     <!-- Filters -->
     <div class="bg-white rounded-xl shadow-sm p-4">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">ค้นหา</label>
                 <div class="relative">
@@ -59,7 +65,19 @@
                 </select>
             </div>
 
-            <div class="md:col-span-4 flex justify-end space-x-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ซัพพลายเออร์</label>
+                <select name="supplier_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <option value="">ทั้งหมด</option>
+                    @foreach($suppliers as $supplier)
+                    <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                        {{ $supplier->name }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="md:col-span-5 flex justify-end space-x-3">
                 <a href="{{ route('products.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                     ล้างตัวกรอง
                 </a>
@@ -107,6 +125,9 @@
                                     @if($product->barcode)
                                     <p class="text-xs text-gray-500">{{ $product->barcode }}</p>
                                     @endif
+                                    @if($product->supplier)
+                                    <p class="text-xs text-gray-400"><i class="fas fa-truck text-xs mr-1"></i>{{ $product->supplier->name }}</p>
+                                    @endif
                                 </div>
                             </div>
                         </td>
@@ -117,10 +138,10 @@
                             {{ $product->category->name ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                            ฿{{ number_format($product->cost, 0) }}
+                            ฿{{ number_format($product->cost ?? 0, 0) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 text-right">
-                            ฿{{ number_format($product->retail_price, 0) }}
+                            ฿{{ number_format($product->retail_price ?? 0, 0) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             @php
@@ -177,6 +198,71 @@
             {{ $products->links() }}
         </div>
         @endif
+    </div>
+
+    <!-- Import CSV Modal -->
+    <div id="importModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black bg-opacity-50" onclick="document.getElementById('importModal').classList.add('hidden')"></div>
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-900">
+                        <i class="fas fa-file-csv text-green-600 mr-2"></i>Import สินค้าจาก CSV
+                    </h3>
+                    <button onclick="document.getElementById('importModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <form action="{{ route('products.import-csv') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">เลือกไฟล์ CSV</label>
+                        <input type="file" name="csv_file" accept=".csv,.txt" required
+                            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-2 focus:outline-none">
+                        <p class="text-xs text-gray-500 mt-1">รองรับไฟล์ .csv ขนาดไม่เกิน 5MB</p>
+                    </div>
+
+                    <div class="mb-4 bg-gray-50 rounded-lg p-4">
+                        <p class="text-sm font-medium text-gray-700 mb-2">คอลัมน์ที่รองรับ:</p>
+                        <div class="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                            <span><strong class="text-red-500">*</strong> sku</span>
+                            <span>barcode</span>
+                            <span><strong class="text-red-500">*</strong> name</span>
+                            <span>category (ชื่อหมวดหมู่)</span>
+                            <span>supplier (ชื่อ)</span>
+                            <span>description</span>
+                            <span>unit (ชิ้น/อัน/...)</span>
+                            <span>cost (ต้นทุน)</span>
+                            <span><strong class="text-red-500">*</strong> retail_price (ขายปลีก)</span>
+                            <span>wholesale_price (ขายส่ง)</span>
+                            <span>vip_price (ช่าง)</span>
+                            <span>partner_price (ออนไลน์)</span>
+                            <span>initial_stock (จำนวน)</span>
+                            <span>reorder_point</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            <strong class="text-red-500">*</strong> จำเป็น | ถ้า SKU ซ้ำจะอัปเดทข้อมูลเดิม
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <a href="{{ route('products.import-template') }}" class="text-sm text-indigo-600 hover:text-indigo-800">
+                            <i class="fas fa-download mr-1"></i>ดาวน์โหลดไฟล์ตัวอย่าง
+                        </a>
+                    </div>
+
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')"
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">ยกเลิก</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            <i class="fas fa-upload mr-1"></i>Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

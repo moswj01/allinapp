@@ -75,6 +75,12 @@
                                 <dd class="font-medium">{{ $product->branch->name }}</dd>
                             </div>
                             @endif
+                            @if($product->supplier)
+                            <div>
+                                <dt class="text-gray-500">ซัพพลายเออร์</dt>
+                                <dd class="font-medium">{{ $product->supplier->name }}</dd>
+                            </div>
+                            @endif
                         </dl>
 
                         @if($product->description)
@@ -97,35 +103,35 @@
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div class="bg-gray-50 rounded-lg p-4 text-center">
                         <p class="text-sm text-gray-500">ต้นทุน</p>
-                        <p class="text-xl font-bold text-gray-900">฿{{ number_format($product->cost, 0) }}</p>
+                        <p class="text-xl font-bold text-gray-900">฿{{ number_format($product->cost ?? 0, 0) }}</p>
                     </div>
                     <div class="bg-green-50 rounded-lg p-4 text-center">
                         <p class="text-sm text-green-600">ราคาปลีก</p>
-                        <p class="text-xl font-bold text-green-700">฿{{ number_format($product->retail_price, 0) }}</p>
+                        <p class="text-xl font-bold text-green-700">฿{{ number_format($product->retail_price ?? 0, 0) }}</p>
                     </div>
                     @if($product->wholesale_price)
                     <div class="bg-blue-50 rounded-lg p-4 text-center">
                         <p class="text-sm text-blue-600">ราคาส่ง</p>
-                        <p class="text-xl font-bold text-blue-700">฿{{ number_format($product->wholesale_price, 0) }}</p>
+                        <p class="text-xl font-bold text-blue-700">฿{{ number_format($product->wholesale_price ?? 0, 0) }}</p>
                     </div>
                     @endif
                     @if($product->vip_price)
                     <div class="bg-purple-50 rounded-lg p-4 text-center">
                         <p class="text-sm text-purple-600">ราคาช่าง</p>
-                        <p class="text-xl font-bold text-purple-700">฿{{ number_format($product->vip_price, 0) }}</p>
+                        <p class="text-xl font-bold text-purple-700">฿{{ number_format($product->vip_price ?? 0, 0) }}</p>
                     </div>
                     @endif
                     @if($product->partner_price)
                     <div class="bg-orange-50 rounded-lg p-4 text-center">
                         <p class="text-sm text-orange-600">ราคาออนไลน์</p>
-                        <p class="text-xl font-bold text-orange-700">฿{{ number_format($product->partner_price, 0) }}</p>
+                        <p class="text-xl font-bold text-orange-700">฿{{ number_format($product->partner_price ?? 0, 0) }}</p>
                     </div>
                     @endif
                 </div>
 
                 @php
-                $profit = $product->retail_price - $product->cost;
-                $margin = $product->retail_price > 0 ? ($profit / $product->retail_price) * 100 : 0;
+                $profit = ($product->retail_price ?? 0) - ($product->cost ?? 0);
+                $margin = ($product->retail_price ?? 0) > 0 ? ($profit / $product->retail_price) * 100 : 0;
                 @endphp
                 <div class="mt-4 pt-4 border-t flex justify-between text-sm">
                     <span class="text-gray-500">กำไรต่อชิ้น: <span class="font-medium text-green-600">฿{{ number_format($profit, 0) }}</span></span>

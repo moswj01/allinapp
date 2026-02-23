@@ -5,6 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ใบเสร็จ {{ $sale->sale_number }}</title>
+    @php
+    $shopName = ($template['sales_receipt_shop_name'] ?? '') ?: ($sale->branch->name ?? 'ร้านค้า');
+    $shopInfo = ($template['sales_receipt_shop_info'] ?? '') ?: (($sale->branch->address ?? '') . "\nโทร: " . ($sale->branch->phone ?? '-'));
+    $logoUrl = $template['sales_receipt_logo_url'] ?? '';
+    $showLogo = filter_var($template['sales_receipt_show_logo'] ?? true, FILTER_VALIDATE_BOOLEAN);
+    $paperWidth = ($template['sales_receipt_paper_width'] ?? '80') . 'mm';
+    $fontSize = ($template['sales_receipt_font_size'] ?? '12') . 'px';
+    $showCustomer = filter_var($template['sales_receipt_show_customer'] ?? true, FILTER_VALIDATE_BOOLEAN);
+    $showSeller = filter_var($template['sales_receipt_show_seller'] ?? true, FILTER_VALIDATE_BOOLEAN);
+    $showVat = filter_var($template['sales_receipt_show_vat'] ?? true, FILTER_VALIDATE_BOOLEAN);
+    $showPayment = filter_var($template['sales_receipt_show_payment'] ?? true, FILTER_VALIDATE_BOOLEAN);
+    $footerThank = $template['sales_receipt_footer_thank'] ?? 'ขอบคุณที่ใช้บริการ';
+    $footerText = $template['sales_receipt_footer_text'] ?? "สินค้าที่ซื้อแล้วไม่สามารถเปลี่ยนคืนได้\nยกเว้นมีการรับประกันตามเงื่อนไข";
+    $baseFontSize = intval($template['sales_receipt_font_size'] ?? 12);
+    @endphp
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,9 +31,23 @@
         }
 
         body {
-            font-family: 'Sarabun', sans-serif;
-            font-size: 12px;
-            width: 80mm;
+            font-family: 'Sarabun', ui-sans-serif, system-ui, sans-serif;
+
+            font-size: {
+                    {
+                    $fontSize
+                }
+            }
+
+            ;
+
+            width: {
+                    {
+                    $paperWidth
+                }
+            }
+
+            ;
             padding: 5mm;
             background: white;
         }
@@ -27,14 +59,32 @@
             border-bottom: 1px dashed #000;
         }
 
+        .shop-logo {
+            max-height: 40px;
+            margin-bottom: 5px;
+        }
+
         .shop-name {
-            font-size: 18px;
+            font-size: {
+                    {
+                    $baseFontSize +6
+                }
+            }
+
+            px;
             font-weight: bold;
         }
 
         .shop-info {
-            font-size: 10px;
+            font-size: {
+                    {
+                    $baseFontSize - 2
+                }
+            }
+
+            px;
             color: #666;
+            white-space: pre-line;
         }
 
         .receipt-info {
@@ -48,7 +98,13 @@
         }
 
         .receipt-info td {
-            font-size: 11px;
+            font-size: {
+                    {
+                    $baseFontSize - 1
+                }
+            }
+
+            px;
         }
 
         .items table {
@@ -58,7 +114,14 @@
 
         .items th {
             text-align: left;
-            font-size: 11px;
+
+            font-size: {
+                    {
+                    $baseFontSize - 1
+                }
+            }
+
+            px;
             padding: 5px 0;
             border-bottom: 1px solid #000;
         }
@@ -69,7 +132,14 @@
 
         .items td {
             padding: 5px 0;
-            font-size: 11px;
+
+            font-size: {
+                    {
+                    $baseFontSize - 1
+                }
+            }
+
+            px;
             vertical-align: top;
         }
 
@@ -82,7 +152,13 @@
         }
 
         .item-detail {
-            font-size: 10px;
+            font-size: {
+                    {
+                    $baseFontSize - 2
+                }
+            }
+
+            px;
             color: #666;
         }
 
@@ -105,7 +181,13 @@
         }
 
         .grand-total {
-            font-size: 16px;
+            font-size: {
+                    {
+                    $baseFontSize +4
+                }
+            }
+
+            px;
             font-weight: bold;
         }
 
@@ -117,19 +199,38 @@
         }
 
         .thank-you {
-            font-size: 14px;
+            font-size: {
+                    {
+                    $baseFontSize +2
+                }
+            }
+
+            px;
             font-weight: bold;
             margin-bottom: 5px;
         }
 
         .footer-info {
-            font-size: 10px;
+            font-size: {
+                    {
+                    $baseFontSize - 2
+                }
+            }
+
+            px;
             color: #666;
+            white-space: pre-line;
         }
 
         @media print {
             body {
-                width: 80mm;
+                width: {
+                        {
+                        $paperWidth
+                    }
+                }
+
+                ;
             }
 
             .no-print {
@@ -141,11 +242,11 @@
 
 <body>
     <div class="header">
-        <div class="shop-name">{{ $sale->branch->name ?? 'ร้านค้า' }}</div>
-        <div class="shop-info">
-            {{ $sale->branch->address ?? '' }}<br>
-            โทร: {{ $sale->branch->phone ?? '-' }}
-        </div>
+        @if($showLogo && $logoUrl)
+        <img src="{{ $logoUrl }}" alt="Logo" class="shop-logo"><br>
+        @endif
+        <div class="shop-name">{{ $shopName }}</div>
+        <div class="shop-info">{{ $shopInfo }}</div>
     </div>
 
     <div class="receipt-info">
@@ -158,11 +259,13 @@
                 <td>วันที่:</td>
                 <td style="text-align: right;">{{ $sale->created_at->format('d/m/Y H:i') }}</td>
             </tr>
+            @if($showSeller)
             <tr>
                 <td>ผู้ขาย:</td>
                 <td style="text-align: right;">{{ $sale->createdBy->name ?? '-' }}</td>
             </tr>
-            @if($sale->customer)
+            @endif
+            @if($showCustomer && $sale->customer)
             <tr>
                 <td>ลูกค้า:</td>
                 <td style="text-align: right;">{{ $sale->customer->name }}</td>
@@ -205,7 +308,7 @@
                 <td>-฿{{ number_format($sale->discount, 0) }}</td>
             </tr>
             @endif
-            @if($sale->vat > 0)
+            @if($showVat && $sale->vat > 0)
             <tr>
                 <td>ภาษี</td>
                 <td>฿{{ number_format($sale->vat, 0) }}</td>
@@ -215,6 +318,7 @@
                 <td>รวมสุทธิ</td>
                 <td>฿{{ number_format($sale->total, 0) }}</td>
             </tr>
+            @if($showPayment)
             <tr>
                 <td>ชำระโดย</td>
                 <td>
@@ -230,15 +334,25 @@
                     {{ $methodNames[$sale->payment_method] ?? $sale->payment_method }}
                 </td>
             </tr>
+            @if($sale->status === 'pending' && $sale->payment_method === 'credit')
+            <tr>
+                <td>สถานะ</td>
+                <td style="color:#e53e3e;font-weight:bold;">รอชำระเงิน</td>
+            </tr>
+            @if($sale->credit_due_date)
+            <tr>
+                <td>กำหนดชำระ</td>
+                <td>{{ \Carbon\Carbon::parse($sale->credit_due_date)->format('d/m/Y') }}</td>
+            </tr>
+            @endif
+            @endif
+            @endif
         </table>
     </div>
 
     <div class="footer">
-        <div class="thank-you">ขอบคุณที่ใช้บริการ</div>
-        <div class="footer-info">
-            สินค้าที่ซื้อแล้วไม่สามารถเปลี่ยนคืนได้<br>
-            ยกเว้นมีการรับประกันตามเงื่อนไข
-        </div>
+        <div class="thank-you">{{ $footerThank }}</div>
+        <div class="footer-info">{{ $footerText }}</div>
     </div>
 
     <div class="no-print" style="margin-top: 20px; text-align: center;">
@@ -246,13 +360,6 @@
             🖨️ พิมพ์ใบเสร็จ
         </button>
     </div>
-
-    <script>
-        // Auto print
-        window.onload = function() {
-            // window.print();
-        }
-    </script>
 </body>
 
 </html>

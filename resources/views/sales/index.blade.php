@@ -152,6 +152,11 @@
                                 <a href="{{ route('sales.receipt', $sale) }}" target="_blank" class="text-blue-400 hover:text-blue-600" title="พิมพ์ใบเสร็จ">
                                     <i class="fas fa-print"></i>
                                 </a>
+                                @if($sale->status === 'pending')
+                                <a href="{{ route('sales.show', $sale) }}" class="text-green-400 hover:text-green-600" title="ชำระเงิน">
+                                    <i class="fas fa-check-circle"></i>
+                                </a>
+                                @endif
                                 @if($sale->status !== 'cancelled')
                                 <form action="{{ route('sales.destroy', $sale) }}" method="POST" class="inline"
                                     onsubmit="return confirm('ต้องการยกเลิกบิลนี้หรือไม่?')">

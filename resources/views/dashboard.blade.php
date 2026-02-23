@@ -5,56 +5,135 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Today's Repairs -->
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-blue-100 rounded-lg">
-                    <i class="fas fa-tools text-2xl text-blue-600"></i>
+    <!-- Today Stats Cards -->
+    <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <i class="fas fa-calendar-day mr-1"></i> วันนี้
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Today's Sales -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 p-3 bg-green-100 rounded-lg">
+                        <i class="fas fa-coins text-2xl text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">ยอดขายวันนี้</p>
+                        <p class="text-2xl font-bold text-gray-900">฿{{ number_format($todaySales, 0) }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ $todaySalesCount }} รายการ</p>
+                    </div>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">งานซ่อมวันนี้</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $todayRepairs ?? 0 }}</p>
+            </div>
+
+            <!-- Today's Repair Revenue -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 p-3 bg-blue-100 rounded-lg">
+                        <i class="fas fa-tools text-2xl text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">รายได้ซ่อมวันนี้</p>
+                        <p class="text-2xl font-bold text-gray-900">฿{{ number_format($todayRepairRevenue, 0) }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ $todayRepairs }} งาน</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Repairs -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 p-3 bg-yellow-100 rounded-lg">
+                        <i class="fas fa-clock text-2xl text-yellow-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">งานซ่อมค้าง</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $pendingRepairs }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Alert -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 p-3 bg-red-100 rounded-lg">
+                        <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">สินค้าใกล้หมด</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $lowStockProducts }}</p>
+                        <p class="text-xs text-gray-400 mt-1">สินค้าที่ต่ำกว่าขั้นต่ำ</p>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Today's Sales -->
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-green-100 rounded-lg">
-                    <i class="fas fa-coins text-2xl text-green-600"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">ยอดขายวันนี้</p>
-                    <p class="text-2xl font-bold text-gray-900">฿{{ number_format($todaySales ?? 0, 0) }}</p>
+    <!-- Monthly & Financial Stats -->
+    <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <i class="fas fa-chart-line mr-1"></i> สรุปเดือนนี้ & การเงิน
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Monthly Total Revenue -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 p-3 bg-indigo-100 rounded-lg">
+                        <i class="fas fa-chart-bar text-2xl text-indigo-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">รายได้รวมเดือนนี้</p>
+                        <p class="text-2xl font-bold text-gray-900">฿{{ number_format($monthlyTotal, 0) }}</p>
+                        <p class="text-xs text-gray-400 mt-1">
+                            ขาย ฿{{ number_format($monthlyRevenue, 0) }} ({{ $monthlySalesCount }})
+                            / ซ่อม ฿{{ number_format($monthlyRepairRevenue, 0) }} ({{ $monthlyRepairCount }})
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Pending Repairs -->
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-yellow-100 rounded-lg">
-                    <i class="fas fa-clock text-2xl text-yellow-600"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">งานซ่อมค้าง</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $pendingRepairs ?? 0 }}</p>
+            <!-- Credit Pending -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 p-3 bg-orange-100 rounded-lg">
+                        <i class="fas fa-file-invoice text-2xl text-orange-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">เครดิตรอชำระ</p>
+                        <p class="text-2xl font-bold text-gray-900">฿{{ number_format($creditPending->total ?? 0, 0) }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ $creditPending->count ?? 0 }} บิล</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Low Stock Alert -->
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-red-100 rounded-lg">
-                    <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
+            <!-- AR Outstanding -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 p-3 bg-purple-100 rounded-lg">
+                        <i class="fas fa-hand-holding-usd text-2xl text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">ลูกหนี้ค้างชำระ</p>
+                        <p class="text-2xl font-bold text-gray-900">฿{{ number_format($arOutstanding->total ?? 0, 0) }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ $arOutstanding->count ?? 0 }} รายการ</p>
+                    </div>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">สินค้าใกล้หมด</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ ($lowStockProducts ?? 0) + ($lowStockParts ?? 0) }}</p>
+            </div>
+
+            <!-- AR Overdue -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 p-3 {{ ($arOverdue->count ?? 0) > 0 ? 'bg-red-100' : 'bg-gray-100' }} rounded-lg">
+                        <i class="fas fa-exclamation-circle text-2xl {{ ($arOverdue->count ?? 0) > 0 ? 'text-red-600' : 'text-gray-400' }}"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">ลูกหนี้เกินกำหนด</p>
+                        <p class="text-2xl font-bold {{ ($arOverdue->count ?? 0) > 0 ? 'text-red-600' : 'text-gray-900' }}">
+                            ฿{{ number_format($arOverdue->total ?? 0, 0) }}
+                        </p>
+                        <p class="text-xs {{ ($arOverdue->count ?? 0) > 0 ? 'text-red-400' : 'text-gray-400' }} mt-1">
+                            {{ $arOverdue->count ?? 0 }} รายการ
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -110,7 +189,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="font-medium text-gray-900">{{ $repair->repair_number }}</p>
-                            <p class="text-sm text-gray-500">{{ $repair->customer_name }} - {{ $repair->device_brand }} {{ $repair->device_model }}</p>
+                            <p class="text-sm text-gray-500">{{ $repair->customer->name ?? $repair->customer_name }} - {{ $repair->device_brand }} {{ $repair->device_model }}</p>
                         </div>
                         <span class="px-3 py-1 text-xs font-medium rounded-full {{ $statusColors[$repair->status] ?? 'bg-gray-100' }}">
                             {{ $statusNames[$repair->status] ?? $repair->status }}
@@ -143,9 +222,20 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="font-medium text-gray-900">{{ $sale->sale_number }}</p>
-                            <p class="text-sm text-gray-500">{{ $sale->customer_name ?: 'ลูกค้าทั่วไป' }}</p>
+                            <p class="text-sm text-gray-500">{{ $sale->customer->name ?? $sale->customer_name ?? 'ลูกค้าทั่วไป' }}</p>
                         </div>
-                        <span class="text-green-600 font-semibold">฿{{ number_format($sale->total, 0) }}</span>
+                        <div class="text-right">
+                            <span class="text-green-600 font-semibold">฿{{ number_format($sale->total, 0) }}</span>
+                            @if($sale->status === 'pending')
+                            <p class="text-xs text-yellow-600 mt-1">
+                                <i class="fas fa-clock mr-1"></i>รอชำระ
+                            </p>
+                            @elseif($sale->status === 'cancelled')
+                            <p class="text-xs text-red-500 mt-1">
+                                <i class="fas fa-times mr-1"></i>ยกเลิก
+                            </p>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 @empty

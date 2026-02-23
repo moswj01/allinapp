@@ -6,9 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Traits\BelongsToTenant;
+
 
 class PurchaseOrder extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'po_number',
         'supplier_id',
@@ -51,7 +55,7 @@ class PurchaseOrder extends Model
 
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function approvedBy(): BelongsTo
@@ -81,4 +85,50 @@ class PurchaseOrder extends Model
     public const STATUS_PARTIAL = 'partial';
     public const STATUS_RECEIVED = 'received';
     public const STATUS_CANCELLED = 'cancelled';
+
+    public static function getStatuses(): array
+    {
+        return [
+            self::STATUS_DRAFT => 'ร่าง',
+            self::STATUS_PENDING => 'รออนุมัติ',
+            self::STATUS_APPROVED => 'อนุมัติแล้ว',
+            self::STATUS_PARTIAL => 'รับบางส่วน',
+            self::STATUS_RECEIVED => 'รับครบแล้ว',
+            self::STATUS_CANCELLED => 'ยกเลิก',
+        ];
+    }
+
+    public static function getStatusColor(string $status): string
+    {
+        return match ($status) {
+            self::STATUS_DRAFT => 'gray',
+            self::STATUS_PENDING => 'yellow',
+            self::STATUS_APPROVED => 'blue',
+            self::STATUS_PARTIAL => 'orange',
+            self::STATUS_RECEIVED => 'green',
+            self::STATUS_CANCELLED => 'red',
+            default => 'gray',
+        };
+    }
+
+    public function canBeApproved(): bool
+    {
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_PENDING]);
+    }
+
+    public function canBeReceived(): bool
+    {
+        return in_array($this->status, [self::STATUS_APPROVED, self::STATUS_PARTIAL]);
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_PENDING, self::STATUS_APPROVED]);
+    }
+
+    public function recalculateTotal(): void
+    {
+        $this->subtotal = $this->items()->sum('subtotal');
+        $this->total = $this->subtotal - $this->discount_amount + $this->tax_amount;
+    }
 }

@@ -56,15 +56,28 @@
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('role_id') border-red-500 @enderror">
                             <option value="">-- เลือกบทบาท --</option>
                             @foreach($roles as $role)
+                            @php
+                            // Non-owner/admin can only assign Sales, Technician, Warehouse roles
+                            $restrictedSlugs = ['owner', 'admin', 'manager'];
+                            $currentUser = Auth::user();
+                            $canAssign = $currentUser->isOwner() || $currentUser->isAdmin() || !in_array($role->slug, $restrictedSlugs);
+                            @endphp
+                            @if($canAssign)
                             <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
                                 {{ $role->name }}
                             </option>
+                            @endif
                             @endforeach
                         </select>
                         @error('role_id')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">สาขา <span class="text-red-500">*</span></label>
+                        @if(count($branches) === 1)
+                        <input type="hidden" name="branch_id" value="{{ $branches->first()->id }}">
+                        <input type="text" value="{{ $branches->first()->name }}" disabled
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700">
+                        @else
                         <select name="branch_id" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('branch_id') border-red-500 @enderror">
                             <option value="">-- เลือกสาขา --</option>
@@ -74,6 +87,7 @@
                             </option>
                             @endforeach
                         </select>
+                        @endif
                         @error('branch_id')<p class="mt-1 text-sm text-red-500">{{ $message }}</p>@enderror
                     </div>
                 </div>

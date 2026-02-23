@@ -3,16 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\BelongsToTenant;
+
 
 class Customer extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'code',
         'name',
         'phone',
         'email',
         'address',
+        'branch_id',
         'line_id',
         'facebook_id',
         'facebook_name',
@@ -33,6 +39,11 @@ class Customer extends Model
         'points' => 'integer',
         'is_active' => 'boolean',
     ];
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function repairs(): HasMany
     {

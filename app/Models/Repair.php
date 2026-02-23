@@ -6,9 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
+use App\Traits\BelongsToTenant;
+
 
 class Repair extends Model
 {
+    use BelongsToTenant;
+
+    protected $attributes = [
+        'estimated_cost' => 0,
+        'service_cost' => 0,
+        'parts_cost' => 0,
+        'discount' => 0,
+        'total_cost' => 0,
+        'deposit' => 0,
+        'paid_amount' => 0,
+    ];
+
     protected $fillable = [
         'repair_number',
         'branch_id',
@@ -121,8 +135,9 @@ class Repair extends Model
 
     public function calculateTotal(): void
     {
-        $this->parts_cost = $this->parts()->where('status', 'used')->sum(DB::raw('quantity * unit_price'));
-        $this->total_cost = $this->service_cost + $this->parts_cost - $this->discount;
+        $this->parts_cost = $this->parts()->whereIn('status', ['approved', 'used', 'issued'])->sum(DB::raw('quantity * unit_price'));
+        // คิดแค่ค่าบริการ ไม่บวกค่าอะไหล่
+        $this->total_cost = $this->service_cost - $this->discount;
     }
 
     public function getBalanceAttribute(): float

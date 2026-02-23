@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'branch.access' => \App\Http\Middleware\CheckBranchAccess::class,
+            'tenant' => \App\Http\Middleware\SetTenant::class,
+            'superadmin' => \App\Http\Middleware\SuperAdminOnly::class,
+            'feature' => \App\Http\Middleware\CheckFeature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

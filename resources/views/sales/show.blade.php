@@ -27,6 +27,13 @@
             <span class="px-4 py-2 text-sm font-semibold rounded-full border-2 {{ $statusColors[$sale->status] ?? 'bg-gray-100' }}">
                 {{ $statusNames[$sale->status] ?? $sale->status }}
             </span>
+
+            @if($sale->status === 'pending')
+            <button onclick="document.getElementById('paymentModal').classList.remove('hidden')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                <i class="fas fa-check mr-1"></i>ชำระแล้ว
+            </button>
+            @endif
+
             <a href="{{ route('sales.receipt', $sale) }}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 <i class="fas fa-print mr-2"></i>พิมพ์
             </a>
@@ -186,4 +193,86 @@
     </div>
     @endif
 </div>
+
+@if($sale->status === 'pending')
+<!-- Payment Modal -->
+<div id="paymentModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="document.getElementById('paymentModal').classList.add('hidden')"></div>
+
+        <!-- Modal Content -->
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 z-10">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-gray-900">
+                    <i class="fas fa-money-check-alt text-green-600 mr-2"></i>ยืนยันการชำระเงิน
+                </h3>
+                <button onclick="document.getElementById('paymentModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Sale Summary -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>บิลเลขที่</span>
+                    <span class="font-mono font-semibold">{{ $sale->sale_number }}</span>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>ลูกค้า</span>
+                    <span class="font-semibold">{{ $sale->customer->name ?? 'ลูกค้าทั่วไป' }}</span>
+                </div>
+                <div class="flex justify-between text-lg font-bold text-green-700 mt-2 pt-2 border-t">
+                    <span>ยอดชำระ</span>
+                    <span>฿{{ number_format($sale->total, 0) }}</span>
+                </div>
+            </div>
+
+            <form action="{{ route('sales.updateStatus', $sale) }}" method="POST">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="status" value="completed">
+
+                <!-- Payment Method -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">วิธีการชำระเงิน <span class="text-red-500">*</span></label>
+                    <select name="payment_method" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <option value="">-- เลือกวิธีชำระ --</option>
+                        <option value="cash">เงินสด</option>
+                        <option value="transfer">โอนเงิน</option>
+                        <option value="qr">QR Payment</option>
+                        <option value="card">บัตรเครดิต</option>
+                    </select>
+                </div>
+
+                <!-- Reference Number -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">เลขอ้างอิง / เลขที่รายการ</label>
+                    <input type="text" name="reference_number" placeholder="เช่น เลขที่ slip, เลขอ้างอิงธนาคาร"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">หมายเหตุ</label>
+                    <textarea name="notes" rows="2" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex space-x-3">
+                    <button type="button" onclick="document.getElementById('paymentModal').classList.add('hidden')"
+                        class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                        ยกเลิก
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                        <i class="fas fa-check mr-1"></i>ยืนยันชำระเงิน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 @endsection

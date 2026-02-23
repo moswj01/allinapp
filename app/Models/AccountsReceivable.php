@@ -6,23 +6,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Traits\BelongsToTenant;
+
 
 class AccountsReceivable extends Model
 {
+    use BelongsToTenant;
+
+    protected $table = 'accounts_receivable';
+
     protected $fillable = [
-        'ar_number',
+        'branch_id',
         'customer_id',
-        'reference_type',
-        'reference_id',
-        'reference_number',
+        'source_type',
+        'source_id',
+        'invoice_number',
         'invoice_date',
         'due_date',
         'amount',
         'paid_amount',
         'balance',
+        'overdue_days',
         'status',
         'notes',
-        'created_by',
     ];
 
     protected $casts = [
@@ -38,9 +44,14 @@ class AccountsReceivable extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function reference(): MorphTo
+    public function source(): MorphTo
     {
-        return $this->morphTo('reference');
+        return $this->morphTo('source');
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     public function createdBy(): BelongsTo
@@ -60,8 +71,23 @@ class AccountsReceivable extends Model
 
         if ($this->balance <= 0) {
             $this->status = self::STATUS_PAID;
+
+            // Update source sale status to completed when fully paid
+            if ($this->source_type === Sale::class) {
+                Sale::where('id', $this->source_id)->update([
+                    'status' => 'completed',
+                    'payment_status' => 'paid',
+                ]);
+            }
         } elseif ($this->paid_amount > 0) {
             $this->status = self::STATUS_PARTIAL;
+
+            // Update source sale payment_status to partial
+            if ($this->source_type === Sale::class) {
+                Sale::where('id', $this->source_id)->update([
+                    'payment_status' => 'partial',
+                ]);
+            }
         }
     }
 

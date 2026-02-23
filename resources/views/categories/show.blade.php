@@ -11,7 +11,7 @@
             <div>
                 <h2 class="text-2xl font-bold text-gray-900">{{ $category->name }}</h2>
                 <p class="text-gray-500">
-                    ประเภท: {{ $category->type == 'product' ? 'สินค้า' : 'อะไหล่' }}
+                    ประเภท: สินค้า
                 </p>
             </div>
             <a href="{{ route('categories.edit', $category) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
@@ -29,10 +29,6 @@
             <div>
                 <span class="text-3xl font-bold text-indigo-600">{{ $category->products_count ?? 0 }}</span>
                 <span class="text-gray-500 ml-2">สินค้า</span>
-            </div>
-            <div>
-                <span class="text-3xl font-bold text-yellow-600">{{ $category->parts_count ?? 0 }}</span>
-                <span class="text-gray-500 ml-2">อะไหล่</span>
             </div>
         </div>
     </div>

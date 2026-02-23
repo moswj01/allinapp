@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Product;
-use App\Models\Part;
 use App\Models\Customer;
 use App\Models\BranchStock;
 use App\Models\StockMovement;
+use App\Http\Controllers\ReceiptTemplateController;
+use App\Models\AccountsReceivable;
+use App\Models\ARPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -51,7 +53,7 @@ class SaleController extends Controller
         // Today's summary
         $todaySummary = Sale::where('branch_id', $branchId)
             ->whereDate('created_at', Carbon::today())
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'pending'])
             ->selectRaw('COUNT(*) as count, SUM(total) as total')
             ->first();
 
@@ -87,7 +89,7 @@ class SaleController extends Controller
             'customer_name' => 'nullable|string|max:255',
             'customer_phone' => 'nullable|string|max:20',
             'items' => 'required|array|min:1',
-            'items.*.type' => 'required|in:product,part',
+            'items.*.type' => 'required|in:product',
             'items.*.id' => 'required|integer',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
@@ -95,8 +97,42 @@ class SaleController extends Controller
             'tax' => 'nullable|numeric|min:0',
             'payment_method' => 'required|in:cash,transfer,qr,card,credit',
             'received_amount' => 'nullable|numeric|min:0',
+            'credit_due_date' => 'nullable|date|after_or_equal:today',
             'notes' => 'nullable|string',
         ]);
+
+        // Credit term validation
+        if ($validated['payment_method'] === 'credit') {
+            if (empty($validated['customer_id'])) {
+                return response()->json(['error' => 'กรุณาเลือกลูกค้าก่อนขายเครดิต'], 422);
+            }
+
+            $customer = Customer::find($validated['customer_id']);
+            if (!$customer) {
+                return response()->json(['error' => 'ไม่พบข้อมูลลูกค้า'], 422);
+            }
+
+            // Check credit limit only if customer has a limit configured
+            if ($customer->hasCredit()) {
+                $outstandingAR = AccountsReceivable::where('customer_id', $customer->id)
+                    ->whereIn('status', ['pending', 'partial'])
+                    ->sum('balance');
+
+                $subtotal = 0;
+                foreach ($validated['items'] as $item) {
+                    $subtotal += $item['price'] * $item['quantity'];
+                }
+                $newTotal = max(0, $subtotal - ($validated['discount'] ?? 0) + ($validated['tax'] ?? 0));
+
+                if (($outstandingAR + $newTotal) > $customer->credit_limit) {
+                    return response()->json([
+                        'error' => 'วงเงินเครดิตไม่เพียงพอ (วงเงิน: ฿' . number_format($customer->credit_limit, 0)
+                            . ' / ค้างชำระ: ฿' . number_format($outstandingAR, 0)
+                            . ' / คงเหลือ: ฿' . number_format($customer->credit_limit - $outstandingAR, 0) . ')'
+                    ], 422);
+                }
+            }
+        }
 
         $user = $request->user();
         $branchId = $user->branch_id;
@@ -110,6 +146,18 @@ class SaleController extends Controller
         $discount = $validated['discount'] ?? 0;
         $vat = $validated['tax'] ?? 0; // map tax input to vat field
         $total = max(0, $subtotal - $discount + $vat);
+
+        // Calculate credit due date
+        $creditDueDate = null;
+        if ($validated['payment_method'] === 'credit') {
+            if (!empty($validated['credit_due_date'])) {
+                $creditDueDate = Carbon::parse($validated['credit_due_date']);
+            } else {
+                $customer = Customer::find($validated['customer_id']);
+                $creditDays = $customer->credit_days ?: 30;
+                $creditDueDate = Carbon::today()->addDays($creditDays);
+            }
+        }
 
         // Generate sale number
         $today = Carbon::today();
@@ -128,26 +176,40 @@ class SaleController extends Controller
                 'vat' => $vat,
                 'total' => $total,
                 'payment_method' => $validated['payment_method'],
-                'payment_status' => $validated['payment_method'] === 'credit' ? 'credit' : 'paid',
-                'status' => 'completed',
+                'payment_status' => $validated['payment_method'] === 'credit' ? 'pending' : 'paid',
+                'credit_due_date' => $creditDueDate,
+                'status' => $validated['payment_method'] === 'credit' ? 'pending' : 'completed',
                 'notes' => $validated['notes'] ?? null,
                 'user_id' => $user->id,
                 'cash_received' => $validated['payment_method'] === 'cash' ? ($validated['received_amount'] ?? 0) : 0,
                 'change_amount' => $validated['payment_method'] === 'cash' ? (($validated['received_amount'] ?? 0) - $total) : 0,
             ]);
 
+            // Create accounts receivable for credit sales
+            if ($validated['payment_method'] === 'credit') {
+                AccountsReceivable::create([
+                    'branch_id' => $branchId,
+                    'customer_id' => $sale->customer_id,
+                    'source_type' => Sale::class,
+                    'source_id' => $sale->id,
+                    'invoice_number' => $saleNumber,
+                    'invoice_date' => Carbon::today(),
+                    'due_date' => $creditDueDate,
+                    'amount' => $total,
+                    'paid_amount' => 0,
+                    'balance' => $total,
+                    'status' => 'pending',
+                    'notes' => 'ขายเครดิต #' . $saleNumber,
+                ]);
+            }
+
             // Create sale items and update stock
             foreach ($validated['items'] as $item) {
                 $stockable = null;
                 $stockableType = null;
 
-                if ($item['type'] === 'product') {
-                    $stockable = Product::findOrFail($item['id']);
-                    $stockableType = Product::class;
-                } else {
-                    $stockable = Part::findOrFail($item['id']);
-                    $stockableType = Part::class;
-                }
+                $stockable = Product::findOrFail($item['id']);
+                $stockableType = Product::class;
 
                 // Create sale item
                 SaleItem::create([
@@ -192,7 +254,7 @@ class SaleController extends Controller
                 return response()->json([
                     'success' => true,
                     'sale' => $sale->load('items'),
-                    'redirect' => route('sales.show', $sale),
+                    'redirect' => route('sales.receipt', $sale),
                 ]);
             }
 
@@ -220,7 +282,7 @@ class SaleController extends Controller
 
     public function destroy(Sale $sale)
     {
-        if ($sale->status === 'completed') {
+        if (in_array($sale->status, ['completed', 'pending'])) {
             // Restore stock for cancelled sales
             DB::transaction(function () use ($sale) {
                 foreach ($sale->items as $item) {
@@ -255,11 +317,60 @@ class SaleController extends Controller
             ->with('success', 'ยกเลิกบิลขายเรียบร้อย');
     }
 
+    /**
+     * Update sale status (mark as paid with payment details)
+     */
+    public function updateStatus(Request $request, Sale $sale)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:completed',
+            'payment_method' => 'required|in:cash,transfer,qr,card',
+            'reference_number' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        DB::transaction(function () use ($sale, $validated) {
+            // Mark sale as completed/paid
+            $sale->update([
+                'status' => 'completed',
+                'payment_status' => 'paid',
+            ]);
+
+            // Update related AR record and create payment
+            $ar = AccountsReceivable::where('source_type', Sale::class)
+                ->where('source_id', $sale->id)
+                ->first();
+
+            if ($ar) {
+                // Create AR payment record
+                ARPayment::create([
+                    'accounts_receivable_id' => $ar->id,
+                    'user_id' => Auth::id(),
+                    'amount' => $ar->amount,
+                    'payment_method' => $validated['payment_method'],
+                    'reference_number' => $validated['reference_number'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                    'payment_date' => now()->toDateString(),
+                ]);
+
+                $ar->update([
+                    'paid_amount' => $ar->amount,
+                    'balance' => 0,
+                    'status' => AccountsReceivable::STATUS_PAID,
+                ]);
+            }
+        });
+
+        return redirect()->back()
+            ->with('success', 'ยืนยันการชำระเงินเรียบร้อย');
+    }
+
     // Print receipt
     public function receipt(Sale $sale)
     {
         $sale->load(['customer', 'items.itemable', 'branch']);
+        $template = ReceiptTemplateController::getSalesTemplate();
 
-        return view('sales.receipt', compact('sale'));
+        return view('sales.receipt', compact('sale', 'template'));
     }
 }

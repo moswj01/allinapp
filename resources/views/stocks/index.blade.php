@@ -3,7 +3,10 @@
 @section('title', 'สต็อก')
 
 @section('content')
-<div x-data="stocks()" x-init="fetchData()">
+<div x-data="stocks()" x-init="fetchData()"
+    data-is-admin="{{ $isAdmin ? '1' : '0' }}"
+    data-user-branch-id="{{ $userBranchId }}"
+    data-user-branch-name="{{ $userBranchName }}">
 
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">จัดการสต็อก</h1>
@@ -35,17 +38,23 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <div class="flex flex-wrap gap-4">
-            <select x-model="branchFilter" @change="fetchData()" class="px-4 py-2 border border-gray-300 rounded-lg">
-                <option value="">ทุกสาขา</option>
-                <template x-for="branch in branches" :key="branch.id">
-                    <option :value="branch.id" x-text="branch.name"></option>
-                </template>
-            </select>
+        <div class="flex flex-wrap gap-4 items-center">
+            <template x-if="isAdmin">
+                <select x-model="branchFilter" @change="fetchData()" class="px-4 py-2 border border-gray-300 rounded-lg">
+                    <option value="">ทุกสาขา</option>
+                    <template x-for="branch in branches" :key="branch.id">
+                        <option :value="branch.id" x-text="branch.name"></option>
+                    </template>
+                </select>
+            </template>
+            <template x-if="!isAdmin">
+                <div class="px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-700 text-sm font-medium">
+                    <i class="fas fa-store mr-2"></i>สาขา: <span x-text="userBranchName"></span>
+                </div>
+            </template>
             <select x-model="typeFilter" @change="fetchData()" class="px-4 py-2 border border-gray-300 rounded-lg">
                 <option value="">ทุกประเภท</option>
                 <option value="product">สินค้า</option>
-                <option value="part">อะไหล่</option>
             </select>
         </div>
     </div>
@@ -70,9 +79,9 @@
                         <td class="px-6 py-4 text-sm text-gray-500" x-text="index + 1"></td>
                         <td class="px-6 py-4 text-sm" x-text="stock.branch?.name || '-'"></td>
                         <td class="px-6 py-4">
-                            <span :class="(stock.stockable_type || '').includes('Product') ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'"
+                            <span :class="'bg-blue-100 text-blue-800'"
                                 class="px-2 py-1 text-xs font-semibold rounded">
-                                <span x-text="(stock.stockable_type || '').includes('Product') ? 'สินค้า' : 'อะไหล่'"></span>
+                                <span>สินค้า</span>
                             </span>
                         </td>
                         <td class="px-6 py-4 text-sm font-medium" x-text="stock.stockable?.name || '-'"></td>
@@ -140,21 +149,27 @@
                 <h3 class="text-lg font-semibold mb-4" x-text="modalType === 'in' ? 'รับสินค้าเข้า' : 'จ่ายสินค้าออก'"></h3>
                 <form @submit.prevent="saveStock()">
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">สาขา *</label>
-                            <select x-model="form.branch_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                                <option value="">เลือกสาขา</option>
-                                <template x-for="branch in branches" :key="branch.id">
-                                    <option :value="branch.id" x-text="branch.name"></option>
-                                </template>
-                            </select>
-                        </div>
+                        <template x-if="isAdmin">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">สาขา *</label>
+                                <select x-model="form.branch_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                    <option value="">เลือกสาขา</option>
+                                    <template x-for="branch in branches" :key="branch.id">
+                                        <option :value="branch.id" x-text="branch.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </template>
+                        <template x-if="!isAdmin">
+                            <div class="px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-700 text-sm font-medium">
+                                <i class="fas fa-store mr-2"></i>สาขา: <span x-text="userBranchName"></span>
+                            </div>
+                        </template>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">ประเภท *</label>
                             <select x-model="form.item_type" @change="fetchItems()" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                                 <option value="">เลือกประเภท</option>
                                 <option value="product">สินค้า</option>
-                                <option value="part">อะไหล่</option>
                             </select>
                         </div>
                         <div>
@@ -198,13 +213,15 @@
             movements: [],
             branches: [],
             products: [],
-            parts: [],
             availableItems: [],
             tab: 'stocks',
             branchFilter: '',
             typeFilter: '',
             showModal: false,
             modalType: 'in',
+            isAdmin: false,
+            userBranchId: '',
+            userBranchName: '',
             form: {
                 branch_id: '',
                 item_type: '',
@@ -215,6 +232,16 @@
             },
 
             async fetchData() {
+                // Read config from data attributes
+                this.isAdmin = this.$el.dataset.isAdmin === '1';
+                this.userBranchId = this.$el.dataset.userBranchId || '';
+                this.userBranchName = this.$el.dataset.userBranchName || '';
+
+                // Non-admin: force branch filter to own branch
+                if (!this.isAdmin && this.userBranchId) {
+                    this.branchFilter = this.userBranchId;
+                }
+
                 let url = '/api/stocks?';
                 if (this.branchFilter) url += `branch_id=${this.branchFilter}&`;
                 if (this.typeFilter) url += `type=${this.typeFilter}`;
@@ -238,7 +265,9 @@
             },
 
             async fetchMovements() {
-                const response = await fetch('/api/stock-movements', {
+                let url = '/api/stock-movements?';
+                if (this.branchFilter) url += `branch_id=${this.branchFilter}`;
+                const response = await fetch(url, {
                     headers: {
                         'Accept': 'application/json'
                     }
@@ -251,15 +280,6 @@
             async fetchItems() {
                 if (this.form.item_type === 'product') {
                     const response = await fetch('/api/products', {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    const payload = await response.json();
-                    const list = payload?.data?.data ?? payload?.data ?? payload;
-                    this.availableItems = Array.isArray(list) ? list : (list?.data ?? []);
-                } else if (this.form.item_type === 'part') {
-                    const response = await fetch('/api/parts', {
                         headers: {
                             'Accept': 'application/json'
                         }
@@ -288,7 +308,7 @@
             },
             resetForm() {
                 this.form = {
-                    branch_id: '',
+                    branch_id: this.isAdmin ? '' : this.userBranchId,
                     item_type: '',
                     item_id: '',
                     quantity: 1,
@@ -308,8 +328,6 @@
 
                 if (this.form.item_type === 'product') {
                     payload.product_id = this.form.item_id;
-                } else {
-                    payload.part_id = this.form.item_id;
                 }
 
                 const url = this.modalType === 'in' ? '/api/stock/in' : '/api/stock/out';

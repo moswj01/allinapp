@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Branch;
+use App\Models\Supplier;
 use App\Models\BranchStock;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
@@ -17,11 +18,18 @@ class ProductController extends Controller
     {
         $user = $request->user();
         $branchId = $user->branch_id;
+        $isAdmin = $user->isOwner() || $user->isAdmin();
 
-        $query = Product::with(['category', 'branch'])
-            ->withCount(['branchStocks as stock_quantity' => function ($q) use ($branchId) {
-                $q->where('branch_id', $branchId)->select(DB::raw('COALESCE(SUM(quantity), 0)'));
-            }]);
+        $query = Product::with(['category', 'branch', 'supplier']);
+
+        // Non-admin users only see their branch products
+        if (!$isAdmin) {
+            $query->where('branch_id', $branchId);
+        }
+
+        $query->withCount(['branchStocks as stock_quantity' => function ($q) use ($branchId) {
+            $q->where('branch_id', $branchId)->select(DB::raw('COALESCE(SUM(quantity), 0)'));
+        }]);
 
         // Search
         if ($search = $request->input('search')) {
@@ -56,18 +64,25 @@ class ProductController extends Controller
             }
         }
 
+        // Filter by supplier
+        if ($supplierId = $request->input('supplier_id')) {
+            $query->where('supplier_id', $supplierId);
+        }
+
         $products = $query->orderBy('name')->paginate(20);
         $categories = Category::where('type', 'product')->where('is_active', true)->get();
+        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
 
-        return view('products.index', compact('products', 'categories'));
+        return view('products.index', compact('products', 'categories', 'suppliers'));
     }
 
     public function create()
     {
         $categories = Category::where('type', 'product')->where('is_active', true)->get();
         $branches = Branch::where('is_active', true)->orderBy('name')->get();
+        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
 
-        return view('products.create', compact('categories', 'branches'));
+        return view('products.create', compact('categories', 'branches', 'suppliers'));
     }
 
     public function store(Request $request)
@@ -79,6 +94,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
             'branch_id' => 'nullable|exists:branches,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'cost' => 'required|numeric|min:0',
             'price_retail' => 'required|numeric|min:0',
             'price_wholesale' => 'nullable|numeric|min:0',
@@ -113,6 +129,11 @@ class ProductController extends Controller
             $payload['price_online']
         );
 
+        // Auto-assign branch from current user if not specified
+        if (empty($payload['branch_id'])) {
+            $payload['branch_id'] = $request->user()->branch_id;
+        }
+
         $product = Product::create($payload);
 
         // Create initial stock for current branch
@@ -146,7 +167,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        $product->load(['category', 'branch', 'branchStocks.branch']);
+        $product->load(['category', 'branch', 'supplier', 'branchStocks.branch']);
 
         // Get stock movements
         $movements = StockMovement::where('movable_type', Product::class)
@@ -163,8 +184,9 @@ class ProductController extends Controller
     {
         $categories = Category::where('type', 'product')->where('is_active', true)->get();
         $branches = Branch::where('is_active', true)->orderBy('name')->get();
+        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
 
-        return view('products.edit', compact('product', 'categories', 'branches'));
+        return view('products.edit', compact('product', 'categories', 'branches', 'suppliers'));
     }
 
     public function update(Request $request, Product $product)
@@ -176,6 +198,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
             'branch_id' => 'nullable|exists:branches,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'cost' => 'required|numeric|min:0',
             'price_retail' => 'required|numeric|min:0',
             'price_wholesale' => 'nullable|numeric|min:0',
@@ -310,5 +333,195 @@ class ProductController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'ปรับปรุงสต๊อกเรียบร้อย');
+    }
+
+    /**
+     * Download CSV template for product import
+     */
+    public function downloadTemplate()
+    {
+        $headers = ['sku', 'barcode', 'name', 'category', 'supplier', 'description', 'unit', 'cost', 'retail_price', 'wholesale_price', 'vip_price', 'partner_price', 'initial_stock', 'reorder_point'];
+        $example = ['SKU-001', '8850001234567', 'หน้าจอ iPhone 15', 'อะไหล่', 'ซัพพลายเออร์ A', 'หน้าจอกระจกเทมป์', 'ชิ้น', '150', '350', '300', '280', '250', '10', '5'];
+
+        $callback = function () use ($headers, $example) {
+            $file = fopen('php://output', 'w');
+            // BOM for UTF-8 Excel compatibility
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($file, $headers);
+            fputcsv($file, $example);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="product_import_template.csv"',
+        ]);
+    }
+
+    /**
+     * Import products from CSV file
+     */
+    public function importCsv(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        $file = $request->file('csv_file');
+        $user = $request->user();
+        $branchId = $user->branch_id;
+
+        $handle = fopen($file->getRealPath(), 'r');
+        if (!$handle) {
+            return redirect()->back()->with('error', 'ไม่สามารถเปิดไฟล์ CSV');
+        }
+
+        // Read header row
+        $header = fgetcsv($handle);
+        if (!$header) {
+            fclose($handle);
+            return redirect()->back()->with('error', 'ไฟล์ CSV ว่างเปล่า');
+        }
+
+        // Clean BOM from first column
+        $header[0] = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $header[0]);
+        $header = array_map('trim', array_map('strtolower', $header));
+
+        $requiredCols = ['sku', 'name', 'retail_price'];
+        foreach ($requiredCols as $col) {
+            if (!in_array($col, $header)) {
+                fclose($handle);
+                return redirect()->back()->with('error', "ไม่พบคอลัมน์ '{$col}' ในไฟล์ CSV (ต้องมี: sku, name, retail_price)");
+            }
+        }
+
+        // Cache categories & suppliers by name for lookup
+        $categories = Category::where('type', 'product')->pluck('id', 'name')->toArray();
+        $suppliers = Supplier::pluck('id', 'name')->toArray();
+
+        $imported = 0;
+        $updated = 0;
+        $skipped = 0;
+        $errors = [];
+        $rowNum = 1;
+
+        DB::beginTransaction();
+        try {
+            while (($row = fgetcsv($handle)) !== false) {
+                $rowNum++;
+
+                // Skip empty rows
+                if (empty(array_filter($row))) continue;
+
+                // Map header to values
+                $data = [];
+                foreach ($header as $i => $col) {
+                    $data[$col] = isset($row[$i]) ? trim($row[$i]) : '';
+                }
+
+                // Validate required
+                if (empty($data['sku']) || empty($data['name'])) {
+                    $errors[] = "แถว {$rowNum}: SKU หรือชื่อสินค้าว่าง";
+                    $skipped++;
+                    continue;
+                }
+
+                // Resolve category
+                $categoryId = null;
+                if (!empty($data['category'])) {
+                    if (isset($categories[$data['category']])) {
+                        $categoryId = $categories[$data['category']];
+                    } else {
+                        // Auto-create category
+                        $cat = Category::create([
+                            'name' => $data['category'],
+                            'type' => 'product',
+                            'is_active' => true,
+                        ]);
+                        $categories[$data['category']] = $cat->id;
+                        $categoryId = $cat->id;
+                    }
+                }
+
+                // Resolve supplier
+                $supplierId = null;
+                if (!empty($data['supplier'])) {
+                    if (isset($suppliers[$data['supplier']])) {
+                        $supplierId = $suppliers[$data['supplier']];
+                    }
+                }
+
+                // Build product data
+                $productData = [
+                    'sku' => $data['sku'],
+                    'barcode' => $data['barcode'] ?? null,
+                    'name' => $data['name'],
+                    'category_id' => $categoryId,
+                    'supplier_id' => $supplierId,
+                    'branch_id' => $branchId,
+                    'description' => $data['description'] ?? null,
+                    'unit' => $data['unit'] ?? 'ชิ้น',
+                    'cost' => floatval($data['cost'] ?? 0),
+                    'retail_price' => floatval($data['retail_price'] ?? 0),
+                    'wholesale_price' => floatval($data['wholesale_price'] ?? 0),
+                    'vip_price' => floatval($data['vip_price'] ?? 0),
+                    'partner_price' => floatval($data['partner_price'] ?? 0),
+                    'reorder_point' => intval($data['reorder_point'] ?? 5),
+                    'is_active' => true,
+                ];
+
+                // Check existing by SKU
+                $existing = Product::where('sku', $data['sku'])->first();
+
+                if ($existing) {
+                    // Update existing product (except SKU)
+                    unset($productData['sku']);
+                    $existing->update($productData);
+                    $updated++;
+                } else {
+                    // Create new product
+                    $product = Product::create($productData);
+                    $imported++;
+
+                    // Create initial stock if specified
+                    $initialStock = intval($data['initial_stock'] ?? 0);
+                    if ($initialStock > 0) {
+                        BranchStock::create([
+                            'branch_id' => $branchId,
+                            'stockable_type' => Product::class,
+                            'stockable_id' => $product->id,
+                            'quantity' => $initialStock,
+                            'reorder_point' => intval($data['reorder_point'] ?? 5),
+                        ]);
+
+                        StockMovement::create([
+                            'branch_id' => $branchId,
+                            'movable_type' => Product::class,
+                            'movable_id' => $product->id,
+                            'type' => 'in',
+                            'quantity' => $initialStock,
+                            'reference_type' => 'csv_import',
+                            'notes' => 'Import จาก CSV',
+                            'created_by' => $user->id,
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            fclose($handle);
+            return redirect()->back()->with('error', 'เกิดข้อผิดพลาด: ' . $e->getMessage());
+        }
+
+        fclose($handle);
+
+        $msg = "Import เสร็จ! เพิ่มใหม่ {$imported} | อัปเดท {$updated} | ข้าม {$skipped} รายการ";
+        if (!empty($errors)) {
+            $msg .= ' | ปัญหา: ' . implode(', ', array_slice($errors, 0, 5));
+        }
+
+        return redirect()->route('products.index')->with('success', $msg);
     }
 }

@@ -4,7 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\PartController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CustomerController;
@@ -43,13 +42,6 @@ Route::get('/customers/search', [WebCustomerController::class, 'search'])->name(
 // Alias to avoid any potential conflicts with resource route matching
 Route::get('/customer-search', [WebCustomerController::class, 'search'])->name('api.customer-search');
 
-Route::get('/parts', function (Request $request) {
-    if ($request->wantsJson()) {
-        return app(PartController::class)->index($request);
-    }
-    return redirect('/parts');
-});
-
 Route::get('/branches', function (Request $request) {
     if ($request->wantsJson()) {
         return app(BranchController::class)->index($request);
@@ -79,12 +71,6 @@ Route::apiResource('products', ProductController::class)->except(['index'])->nam
     'show' => 'api.products.show',
     'update' => 'api.products.update',
     'destroy' => 'api.products.destroy',
-]);
-Route::apiResource('parts', PartController::class)->except(['index'])->names([
-    'store' => 'api.parts.store',
-    'show' => 'api.parts.show',
-    'update' => 'api.parts.update',
-    'destroy' => 'api.parts.destroy',
 ]);
 Route::apiResource('branches', BranchController::class)->except(['index'])->names([
     'store' => 'api.branches.store',
@@ -117,3 +103,6 @@ Route::apiResource('stocks', StockController::class)->names([
 Route::get('/stock-movements', [StockController::class, 'movements']);
 Route::post('/stock/in', [StockController::class, 'stockIn']);
 Route::post('/stock/out', [StockController::class, 'stockOut']);
+
+// LINE OA Webhook (public, no auth)
+Route::post('/line/webhook', [\App\Http\Controllers\LineWebhookController::class, 'webhook']);

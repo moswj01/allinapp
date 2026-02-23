@@ -57,16 +57,19 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อหมวดหมู่ *</label>
-                            <input type="text" x-model="form.name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <input type="text" x-model="form.name" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย</label>
-                            <textarea x-model="form.description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
+                            <textarea x-model="form.description" rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
                         </div>
                     </div>
                     <div class="flex justify-end gap-3 mt-6">
                         <button type="button" @click="closeModal()" class="px-4 py-2 text-gray-600">ยกเลิก</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">บันทึก</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">บันทึก</button>
                     </div>
                 </form>
             </div>
@@ -76,80 +79,80 @@
 
 @push('scripts')
 <script>
-    function categories() {
-        return {
-            items: [],
-            showModal: false,
-            editMode: false,
-            form: {
+function categories() {
+    return {
+        items: [],
+        showModal: false,
+        editMode: false,
+        form: {
+            id: null,
+            name: '',
+            description: ''
+        },
+
+        async fetchData() {
+            const response = await fetch('/api/categories', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await response.json();
+            this.items = data.data || data;
+        },
+
+        openModal() {
+            this.editMode = false;
+            this.resetForm();
+            this.showModal = true;
+        },
+        closeModal() {
+            this.showModal = false;
+            this.resetForm();
+        },
+        editItem(item) {
+            this.editMode = true;
+            this.form = {
+                ...item
+            };
+            this.showModal = true;
+        },
+        resetForm() {
+            this.form = {
                 id: null,
                 name: '',
                 description: ''
-            },
+            };
+        },
 
-            async fetchData() {
-                const response = await fetch('/api/categories', {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                const data = await response.json();
-                this.items = data.data || data;
-            },
+        async saveItem() {
+            const url = this.editMode ? `/api/categories/${this.form.id}` : '/api/categories';
+            const response = await fetch(url, {
+                method: this.editMode ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(this.form)
+            });
+            if (response.ok) {
+                this.closeModal();
+                this.fetchData();
+                alert(this.editMode ? 'แก้ไขสำเร็จ' : 'เพิ่มสำเร็จ');
+            }
+        },
 
-            openModal() {
-                this.editMode = false;
-                this.resetForm();
-                this.showModal = true;
-            },
-            closeModal() {
-                this.showModal = false;
-                this.resetForm();
-            },
-            editItem(item) {
-                this.editMode = true;
-                this.form = {
-                    ...item
-                };
-                this.showModal = true;
-            },
-            resetForm() {
-                this.form = {
-                    id: null,
-                    name: '',
-                    description: ''
-                };
-            },
-
-            async saveItem() {
-                const url = this.editMode ? `/api/categories/${this.form.id}` : '/api/categories';
-                const response = await fetch(url, {
-                    method: this.editMode ? 'PUT' : 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(this.form)
-                });
-                if (response.ok) {
-                    this.closeModal();
-                    this.fetchData();
-                    alert(this.editMode ? 'แก้ไขสำเร็จ' : 'เพิ่มสำเร็จ');
-                }
-            },
-
-            async deleteItem(id) {
-                if (!confirm('ลบหมวดหมู่นี้?')) return;
-                const response = await fetch(`/api/categories/${id}`, {
-                    method: 'DELETE'
-                });
-                if (response.ok) {
-                    this.fetchData();
-                    alert('ลบสำเร็จ');
-                }
+        async deleteItem(id) {
+            if (!confirm('ลบหมวดหมู่นี้?')) return;
+            const response = await fetch(`/api/categories/${id}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                this.fetchData();
+                alert('ลบสำเร็จ');
             }
         }
     }
+}
 </script>
 @endpush
 @endsection

@@ -8,7 +8,13 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <p class="text-gray-600">จัดการบัญชีผู้ใช้งานในระบบ</p>
+            <p class="text-gray-600">
+                @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
+                จัดการบัญชีผู้ใช้งานในระบบ
+                @else
+                จัดการพนักงานสาขา: {{ Auth::user()->branch->name ?? '' }}
+                @endif
+            </p>
         </div>
         <a href="{{ route('users.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
             <i class="fas fa-plus mr-2"></i>
@@ -34,6 +40,7 @@
                     @endforeach
                 </select>
             </div>
+            @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
             <div>
                 <select name="branch_id" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                     <option value="">-- ทุกสาขา --</option>
@@ -44,6 +51,7 @@
                     @endforeach
                 </select>
             </div>
+            @endif
             <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
                 <i class="fas fa-search mr-1"></i> ค้นหา
             </button>

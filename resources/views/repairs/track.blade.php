@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ติดตามงานซ่อม - {{ $repair->repair_number }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --brand: #111827;
@@ -15,7 +18,7 @@
         }
 
         body {
-            font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+            font-family: 'Sarabun', ui-sans-serif, system-ui, sans-serif;
             color: var(--brand);
             background: var(--bg);
         }

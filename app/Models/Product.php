@@ -4,18 +4,34 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Traits\BelongsToTenant;
+
 
 class Product extends Model
 {
+    use BelongsToTenant;
+
+    protected $attributes = [
+        'cost' => 0,
+        'retail_price' => 0,
+        'wholesale_price' => 0,
+        'vip_price' => 0,
+        'partner_price' => 0,
+    ];
+
     protected $fillable = [
         'barcode',
         'sku',
         'name',
         'category_id',
         'branch_id',
+        'supplier_id',
         'description',
         'unit',
+        'compatible_brands',
+        'compatible_models',
         'cost',
         'retail_price',
         'wholesale_price',
@@ -53,6 +69,16 @@ class Product extends Model
         return $this->belongsTo(Branch::class);
     }
 
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function repairParts(): HasMany
+    {
+        return $this->hasMany(RepairPart::class);
+    }
+
     public function branchStocks(): MorphMany
     {
         return $this->morphMany(BranchStock::class, 'stockable');
@@ -81,10 +107,10 @@ class Product extends Model
     public function getPriceByType(string $type): float
     {
         return match ($type) {
-            'wholesale' => $this->wholesale_price,
-            'vip' => $this->vip_price,
-            'partner' => $this->partner_price,
-            default => $this->retail_price,
+            'wholesale' => $this->wholesale_price ?? $this->retail_price ?? 0,
+            'vip' => $this->vip_price ?? $this->retail_price ?? 0,
+            'partner' => $this->partner_price ?? $this->retail_price ?? 0,
+            default => $this->retail_price ?? 0,
         };
     }
 }

@@ -6,55 +6,67 @@ use App\Http\Controllers\Controller;
 use App\Models\BranchStock;
 use App\Models\StockMovement;
 use App\Models\Product;
-use App\Models\Part;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class StockController extends Controller
 {
+    /**
+     * Get the allowed branch_id for the current user.
+     * Owner/Admin can access all branches (returns null).
+     * Other users are restricted to their own branch.
+     */
+    private function getAllowedBranchId(Request $request): ?int
+    {
+        $user = $request->user() ?? auth()->user();
+        if (!$user) return null;
+
+        if ($user->isOwner() || $user->isAdmin()) {
+            return null; // can access all
+        }
+
+        return $user->branch_id;
+    }
+
+    /**
+     * Resolve the effective branch_id for filtering.
+     * Non-admin users are always forced to their own branch.
+     */
+    private function resolveFilterBranchId(Request $request): ?int
+    {
+        $allowed = $this->getAllowedBranchId($request);
+
+        if ($allowed !== null) {
+            return $allowed; // forced to own branch
+        }
+
+        // Owner/Admin: use requested filter or null (all)
+        return $request->filled('branch_id') ? (int) $request->branch_id : null;
+    }
+
     public function index(Request $request): JsonResponse
     {
         $query = BranchStock::with(['branch', 'stockable']);
 
-        if ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+        $branchId = $this->resolveFilterBranchId($request);
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
         }
 
-        // Support legacy filters: product_id/part_id
         if ($request->filled('product_id')) {
             $query->where('stockable_type', Product::class)
                 ->where('stockable_id', $request->product_id);
-        }
-
-        if ($request->filled('part_id')) {
-            $query->where('stockable_type', Part::class)
-                ->where('stockable_id', $request->part_id);
-        }
-
-        // Optional: filter by type ('product'|'part')
-        if ($request->filled('type')) {
-            $type = strtolower($request->type);
-            if (in_array($type, ['product', 'part'], true)) {
-                $query->where('stockable_type', $type === 'product' ? Product::class : Part::class);
-            }
         }
 
         // Optional search by name or sku/barcode across stockable
         if ($request->filled('q')) {
             $q = $request->q;
             $query->where(function ($sub) use ($q) {
-                $sub->where(function ($productSub) use ($q) {
-                    $productSub->where('stockable_type', Product::class)
-                        ->whereHas('stockable', function ($p) use ($q) {
-                            $p->where('name', 'like', "%$q%");
-                        });
-                })->orWhere(function ($partSub) use ($q) {
-                    $partSub->where('stockable_type', Part::class)
-                        ->whereHas('stockable', function ($p) use ($q) {
-                            $p->where('name', 'like', "%$q%");
-                        });
-                });
+                $sub->where('stockable_type', Product::class)
+                    ->whereHas('stockable', function ($p) use ($q) {
+                        $p->where('name', 'like', "%$q%");
+                    });
             });
         }
 
@@ -70,18 +82,16 @@ class StockController extends Controller
     {
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
-            'product_id' => 'nullable|exists:products,id',
-            'part_id' => 'nullable|exists:parts,id',
+            'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:0',
             'min_quantity' => 'nullable|integer|min:0',
             'reserved_quantity' => 'nullable|integer|min:0',
         ]);
 
-        if (empty($validated['product_id']) && empty($validated['part_id'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'ต้องระบุสินค้า (product_id) หรืออะไหล่ (part_id) อย่างน้อยหนึ่งรายการ',
-            ], 422);
+        // Enforce own branch
+        $allowed = $this->getAllowedBranchId($request);
+        if ($allowed !== null && (int) $validated['branch_id'] !== $allowed) {
+            return response()->json(['success' => false, 'message' => 'ไม่สามารถจัดการสต็อกสาขาอื่นได้'], 403);
         }
 
         $stock = new BranchStock();
@@ -89,14 +99,8 @@ class StockController extends Controller
         $stock->quantity = $validated['quantity'];
         $stock->min_quantity = $validated['min_quantity'] ?? 0;
         $stock->reserved_quantity = $validated['reserved_quantity'] ?? 0;
-
-        if (!empty($validated['product_id'])) {
-            $stock->stockable_type = Product::class;
-            $stock->stockable_id = $validated['product_id'];
-        } else {
-            $stock->stockable_type = Part::class;
-            $stock->stockable_id = $validated['part_id'];
-        }
+        $stock->stockable_type = Product::class;
+        $stock->stockable_id = $validated['product_id'];
 
         $stock->save();
         $stock->load(['branch', 'stockable']);
@@ -132,25 +136,31 @@ class StockController extends Controller
 
     public function update(Request $request, BranchStock $stock): JsonResponse
     {
+        // Enforce own branch
+        $allowed = $this->getAllowedBranchId($request);
+        if ($allowed !== null && $stock->branch_id !== $allowed) {
+            return response()->json(['success' => false, 'message' => 'ไม่สามารถจัดการสต็อกสาขาอื่นได้'], 403);
+        }
+
         $validated = $request->validate([
             'branch_id' => 'nullable|exists:branches,id',
             'product_id' => 'nullable|exists:products,id',
-            'part_id' => 'nullable|exists:parts,id',
             'quantity' => 'required|integer|min:0',
             'min_quantity' => 'nullable|integer|min:0',
             'reserved_quantity' => 'nullable|integer|min:0',
         ]);
 
         if (!empty($validated['branch_id'])) {
+            // Cannot change to a different branch if not admin
+            if ($allowed !== null && (int) $validated['branch_id'] !== $allowed) {
+                return response()->json(['success' => false, 'message' => 'ไม่สามารถย้ายสต็อกไปสาขาอื่นได้'], 403);
+            }
             $stock->branch_id = $validated['branch_id'];
         }
 
         if (!empty($validated['product_id'])) {
             $stock->stockable_type = Product::class;
             $stock->stockable_id = $validated['product_id'];
-        } elseif (!empty($validated['part_id'])) {
-            $stock->stockable_type = Part::class;
-            $stock->stockable_id = $validated['part_id'];
         }
 
         $stock->quantity = $validated['quantity'];
@@ -167,8 +177,14 @@ class StockController extends Controller
         ]);
     }
 
-    public function destroy(BranchStock $stock): JsonResponse
+    public function destroy(Request $request, BranchStock $stock): JsonResponse
     {
+        // Enforce own branch
+        $allowed = $this->getAllowedBranchId($request);
+        if ($allowed !== null && $stock->branch_id !== $allowed) {
+            return response()->json(['success' => false, 'message' => 'ไม่สามารถลบสต็อกสาขาอื่นได้'], 403);
+        }
+
         $stock->delete();
 
         return response()->json([
@@ -181,8 +197,9 @@ class StockController extends Controller
     {
         $query = StockMovement::with(['branch', 'movable']);
 
-        if ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+        $branchId = $this->resolveFilterBranchId($request);
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
         }
 
         if ($request->filled('type')) {
@@ -192,11 +209,6 @@ class StockController extends Controller
         if ($request->filled('product_id')) {
             $query->where('movable_type', Product::class)
                 ->where('movable_id', $request->product_id);
-        }
-
-        if ($request->filled('part_id')) {
-            $query->where('movable_type', Part::class)
-                ->where('movable_id', $request->part_id);
         }
 
         $movements = $query->latest()->paginate(50);
@@ -213,18 +225,34 @@ class StockController extends Controller
             'branch_stock_id' => 'nullable|exists:branch_stocks,id',
             'branch_id' => 'nullable|exists:branches,id',
             'product_id' => 'nullable|exists:products,id',
-            'part_id' => 'nullable|exists:parts,id',
             'quantity' => 'required|integer|min:1',
             'reference_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($validated, $request) {
+        // Enforce own branch
+        $allowed = $this->getAllowedBranchId($request);
+
+        return DB::transaction(function () use ($validated, $request, $allowed) {
             // Resolve stock record
             if (!empty($validated['branch_stock_id'])) {
                 $stock = BranchStock::findOrFail($validated['branch_stock_id']);
+                // Check branch ownership
+                if ($allowed !== null && $stock->branch_id !== $allowed) {
+                    return response()->json(['success' => false, 'message' => 'ไม่สามารถรับเข้าสต็อกสาขาอื่นได้'], 403);
+                }
             } else {
-                if (empty($validated['branch_id'])) {
+                $branchId = !empty($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+
+                // Force own branch for non-admin
+                if ($allowed !== null) {
+                    if ($branchId && $branchId !== $allowed) {
+                        return response()->json(['success' => false, 'message' => 'ไม่สามารถรับเข้าสต็อกสาขาอื่นได้'], 403);
+                    }
+                    $branchId = $allowed;
+                }
+
+                if (!$branchId) {
                     return response()->json([
                         'success' => false,
                         'message' => 'ต้องระบุ branch_id เมื่อไม่ได้ส่ง branch_stock_id',
@@ -233,19 +261,9 @@ class StockController extends Controller
 
                 if (!empty($validated['product_id'])) {
                     $stock = BranchStock::firstOrCreate([
-                        'branch_id' => $validated['branch_id'],
+                        'branch_id' => $branchId,
                         'stockable_type' => Product::class,
                         'stockable_id' => $validated['product_id'],
-                    ], [
-                        'quantity' => 0,
-                        'min_quantity' => 0,
-                        'reserved_quantity' => 0,
-                    ]);
-                } elseif (!empty($validated['part_id'])) {
-                    $stock = BranchStock::firstOrCreate([
-                        'branch_id' => $validated['branch_id'],
-                        'stockable_type' => Part::class,
-                        'stockable_id' => $validated['part_id'],
                     ], [
                         'quantity' => 0,
                         'min_quantity' => 0,
@@ -254,7 +272,7 @@ class StockController extends Controller
                 } else {
                     return response()->json([
                         'success' => false,
-                        'message' => 'ต้องระบุสินค้า (product_id) หรืออะไหล่ (part_id)',
+                        'message' => 'ต้องระบุสินค้า (product_id)',
                     ], 422);
                 }
             }
@@ -273,7 +291,7 @@ class StockController extends Controller
                 'after_quantity' => $after,
                 'reference_number' => $validated['reference_number'] ?? null,
                 'notes' => $validated['notes'] ?? null,
-                'created_by' => $request->user()?->id,
+                'created_by' => $request->user()?->id ?? auth()->id(),
             ]);
 
             $movement->load(['branch', 'movable']);
@@ -292,18 +310,34 @@ class StockController extends Controller
             'branch_stock_id' => 'nullable|exists:branch_stocks,id',
             'branch_id' => 'nullable|exists:branches,id',
             'product_id' => 'nullable|exists:products,id',
-            'part_id' => 'nullable|exists:parts,id',
             'quantity' => 'required|integer|min:1',
             'reference_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($validated, $request) {
+        // Enforce own branch
+        $allowed = $this->getAllowedBranchId($request);
+
+        return DB::transaction(function () use ($validated, $request, $allowed) {
             // Resolve stock record
             if (!empty($validated['branch_stock_id'])) {
                 $stock = BranchStock::findOrFail($validated['branch_stock_id']);
+                // Check branch ownership
+                if ($allowed !== null && $stock->branch_id !== $allowed) {
+                    return response()->json(['success' => false, 'message' => 'ไม่สามารถจ่ายออกสต็อกสาขาอื่นได้'], 403);
+                }
             } else {
-                if (empty($validated['branch_id'])) {
+                $branchId = !empty($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+
+                // Force own branch for non-admin
+                if ($allowed !== null) {
+                    if ($branchId && $branchId !== $allowed) {
+                        return response()->json(['success' => false, 'message' => 'ไม่สามารถจ่ายออกสต็อกสาขาอื่นได้'], 403);
+                    }
+                    $branchId = $allowed;
+                }
+
+                if (!$branchId) {
                     return response()->json([
                         'success' => false,
                         'message' => 'ต้องระบุ branch_id เมื่อไม่ได้ส่ง branch_stock_id',
@@ -312,20 +346,14 @@ class StockController extends Controller
 
                 if (!empty($validated['product_id'])) {
                     $stock = BranchStock::where([
-                        'branch_id' => $validated['branch_id'],
+                        'branch_id' => $branchId,
                         'stockable_type' => Product::class,
                         'stockable_id' => $validated['product_id'],
-                    ])->first();
-                } elseif (!empty($validated['part_id'])) {
-                    $stock = BranchStock::where([
-                        'branch_id' => $validated['branch_id'],
-                        'stockable_type' => Part::class,
-                        'stockable_id' => $validated['part_id'],
                     ])->first();
                 } else {
                     return response()->json([
                         'success' => false,
-                        'message' => 'ต้องระบุสินค้า (product_id) หรืออะไหล่ (part_id)',
+                        'message' => 'ต้องระบุสินค้า (product_id)',
                     ], 422);
                 }
             }
@@ -358,7 +386,7 @@ class StockController extends Controller
                 'after_quantity' => $after,
                 'reference_number' => $validated['reference_number'] ?? null,
                 'notes' => $validated['notes'] ?? null,
-                'created_by' => $request->user()?->id,
+                'created_by' => $request->user()?->id ?? auth()->id(),
             ]);
 
             $movement->load(['branch', 'movable']);

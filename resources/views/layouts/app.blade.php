@@ -7,8 +7,24 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'All In Mobile') - ระบบบริหารงานซ่อมและสต๊อก</title>
 
+    <!-- Google Font Thai -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Sarabun', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -54,7 +70,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-indigo-700">
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-mobile-alt text-2xl text-indigo-300"></i>
-                    <span class="text-xl font-bold">All In Mobile</span>
+                    <span class="text-xl font-bold">{{ $currentTenant->name ?? 'All In Mobile' }}</span>
                 </div>
                 <button @click="sidebarOpen = false" class="lg:hidden text-indigo-300 hover:text-white">
                     <i class="fas fa-times"></i>
@@ -84,9 +100,41 @@
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">งานซ่อม</p>
                 </div>
-                <a href="{{ route('repairs.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('repairs.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                <a href="{{ route('repairs.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('repairs.index') || request()->routeIs('repairs.create') || request()->routeIs('repairs.show') || request()->routeIs('repairs.edit') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-tools w-5 mr-3"></i>
-                    งานซ่อม (Kanban)
+                    งานซ่อม
+                </a>
+                <a href="{{ route('repairs.part-approvals') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('repairs.part-approvals') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-clipboard-check w-5 mr-3"></i>
+                    อนุมัติเบิกอะไหล่
+                </a>
+                <a href="{{ route('repairs.part-report') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('repairs.part-report') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-chart-bar w-5 mr-3"></i>
+                    รายงานเบิกอะไหล่
+                </a>
+
+                <div class="pt-2 pb-1">
+                    <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">รายงาน</p>
+                </div>
+                <a href="{{ route('reports.sales') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('reports.sales') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-chart-line w-5 mr-3"></i>
+                    รายงานการขาย
+                </a>
+                <a href="{{ route('reports.repairs') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('reports.repairs') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-chart-pie w-5 mr-3"></i>
+                    รายงานการซ่อม
+                </a>
+                <a href="{{ route('reports.stock') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('reports.stock') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-boxes w-5 mr-3"></i>
+                    รายงานสต๊อก
+                </a>
+                <a href="{{ route('reports.finance') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('reports.finance') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-money-check-alt w-5 mr-3"></i>
+                    รายงานการเงิน
+                </a>
+                <a href="{{ route('reports.purchasing') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('reports.purchasing') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-shopping-bag w-5 mr-3"></i>
+                    รายงานจัดซื้อ
                 </a>
 
                 <div class="pt-2 pb-1">
@@ -100,9 +148,37 @@
                     <i class="fas fa-tags w-5 mr-3"></i>
                     หมวดหมู่
                 </a>
+                <a href="{{ route('suppliers.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('suppliers.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-truck w-5 mr-3"></i>
+                    ซัพพลายเออร์
+                </a>
                 <a href="{{ route('stocks.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('stocks.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-warehouse w-5 mr-3"></i>
                     คลังสินค้า (Warehouse)
+                </a>
+                <a href="{{ route('branch-orders.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('branch-orders.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-paper-plane w-5 mr-3"></i>
+                    {{ Auth::user()->branch && Auth::user()->branch->is_main ? 'คำสั่งซื้อ' : 'สั่งซื้อจากสาขาใหญ่' }}
+                </a>
+
+                <div class="pt-2 pb-1">
+                    <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">จัดซื้อ</p>
+                </div>
+                <a href="{{ route('purchase-orders.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('purchase-orders.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-file-invoice w-5 mr-3"></i>
+                    ใบสั่งซื้อ
+                </a>
+                <a href="{{ route('goods-receipts.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('goods-receipts.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-dolly w-5 mr-3"></i>
+                    รับสินค้า
+                </a>
+                <a href="{{ route('stock-takes.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('stock-takes.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-clipboard-list w-5 mr-3"></i>
+                    ตรวจนับสต๊อก
+                </a>
+                <a href="{{ route('stock-transfers.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('stock-transfers.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-exchange-alt w-5 mr-3"></i>
+                    โอนสต๊อก
                 </a>
 
                 <div class="pt-2 pb-1">
@@ -116,9 +192,29 @@
                     <i class="fas fa-receipt w-5 mr-3"></i>
                     รายการขาย
                 </a>
+                <a href="{{ route('quotations.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('quotations.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-file-alt w-5 mr-3"></i>
+                    ใบเสนอราคา
+                </a>
                 <a href="{{ route('customers.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('customers.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-users w-5 mr-3"></i>
                     ลูกค้า
+                </a>
+                <a href="{{ route('accounts-receivable.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('accounts-receivable.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-hand-holding-usd w-5 mr-3"></i>
+                    บัญชีลูกหนี้
+                </a>
+
+                <div class="pt-2 pb-1">
+                    <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">การเงิน</p>
+                </div>
+                <a href="{{ route('finance.petty-cash.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('finance.petty-cash.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-coins w-5 mr-3"></i>
+                    เงินสดย่อย
+                </a>
+                <a href="{{ route('finance.daily-settlement.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('finance.daily-settlement.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-calculator w-5 mr-3"></i>
+                    ปิดยอดประจำวัน
                 </a>
 
                 @if(Auth::user() && Auth::user()->isManager())
@@ -133,6 +229,14 @@
                     <i class="fas fa-store w-5 mr-3"></i>
                     สาขา
                 </a>
+                <a href="{{ route('audit-logs.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('audit-logs.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-history w-5 mr-3"></i>
+                    Audit Log
+                </a>
+                <a href="{{ route('notifications.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('notifications.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-bell w-5 mr-3"></i>
+                    การแจ้งเตือน
+                </a>
 
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">ตั้งค่า</p>
@@ -141,11 +245,27 @@
                     <i class="fas fa-cog w-5 mr-3"></i>
                     การตั้งค่าระบบ
                 </a>
+                <a href="{{ route('receipt-templates.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('receipt-templates.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-file-invoice w-5 mr-3"></i>
+                    ออกแบบใบเสร็จ
+                </a>
+                <a href="{{ route('line-oa.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('line-oa.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
+                    </svg>
+                    LINE OA แชทบอท
+                </a>
                 <a href="{{ route('roles.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('roles.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-user-shield w-5 mr-3"></i>
                     จัดการสิทธิ์
                 </a>
                 @endif
+
+                <!-- Billing -->
+                <a href="{{ route('billing') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('billing*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
+                    <i class="fas fa-crown w-5 mr-3"></i>
+                    แพ็กเกจ / Billing
+                </a>
             </nav>
         </aside>
 
@@ -211,7 +331,33 @@
                 </div>
             </header>
 
-            <!-- Page Content -->
+            <!-- Super Admin Switch-Back Banner -->
+            @if(session('super_admin_id'))
+            <div class="bg-amber-500 text-amber-900 px-6 py-2 flex items-center justify-between text-sm">
+                <span>
+                    <i class="fas fa-user-secret mr-2"></i>
+                    คุณกำลังเข้าใช้งานในฐานะ <strong>{{ Auth::user()->name }}</strong> ({{ $currentTenant->name ?? '' }})
+                </span>
+                <a href="{{ route('superadmin.switch-back') }}" class="px-3 py-1 bg-amber-700 text-white rounded-lg text-xs font-medium hover:bg-amber-800">
+                    <i class="fas fa-arrow-left mr-1"></i>กลับไป Super Admin
+                </a>
+            </div>
+            @endif
+
+            <!-- Trial Warning Banner -->
+            @if(isset($currentTenant) && $currentTenant && $currentTenant->isTrial())
+            @php $daysLeft = $currentTenant->daysLeftInTrial(); @endphp
+            <div class="px-6 py-2 flex items-center justify-between text-sm {{ $daysLeft <= 3 ? 'bg-red-500 text-white' : 'bg-indigo-500 text-white' }}">
+                <span>
+                    <i class="fas fa-clock mr-2"></i>
+                    ช่วงทดลองใช้งาน: เหลืออีก <strong>{{ $daysLeft }} วัน</strong>
+                    @if($daysLeft <= 3) — กรุณาอัพเกรดแพ็กเกจเพื่อใช้งานต่อ @endif
+                        </span>
+                        <a href="{{ route('billing') }}" class="px-3 py-1 bg-white/20 rounded-lg text-xs font-medium hover:bg-white/30">
+                            <i class="fas fa-crown mr-1"></i>อัพเกรดเลย
+                        </a>
+            </div>
+            @endif
             <main class="flex-1 overflow-y-auto bg-gray-100 p-6">
                 <!-- Flash Messages -->
                 @if(session('success'))

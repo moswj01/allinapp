@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\BelongsToTenant;
+
 
 class Setting extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'branch_id',
         'group',
@@ -88,4 +92,14 @@ class Setting extends Model
 
     public const LINE_NOTIFY_TOKEN = 'line_notify_token';
     public const SMS_API_KEY = 'sms_api_key';
+
+    // LINE OA Chatbot
+    public const LINE_OA_ENABLED = 'line_oa_enabled';
+    public const LINE_OA_CHANNEL_ID = 'line_oa_channel_id';
+    public const LINE_OA_CHANNEL_SECRET = 'line_oa_channel_secret';
+    public const LINE_OA_ACCESS_TOKEN = 'line_oa_access_token';
+    public const LINE_OA_WELCOME_MSG = 'line_oa_welcome_msg';
+    public const LINE_OA_SHOW_PRICE = 'line_oa_show_price';
+    public const LINE_OA_SHOW_BRANCH = 'line_oa_show_branch';
+    public const LINE_OA_AUTO_SEARCH = 'line_oa_auto_search';
 }

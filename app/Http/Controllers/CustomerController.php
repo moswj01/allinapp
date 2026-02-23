@@ -12,7 +12,11 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Customer::withCount(['repairs', 'sales']);
+        $user = $request->user();
+        $branchId = $user->branch_id;
+
+        $query = Customer::withCount(['repairs', 'sales'])
+            ->where('branch_id', $branchId);
 
         // Search
         if ($search = $request->input('search')) {
@@ -66,6 +70,7 @@ class CustomerController extends Controller
 
         // Auto-generate customer code if not provided
         $payload['code'] = 'CUS-' . strtoupper(Str::random(6));
+        $payload['branch_id'] = $request->user()->branch_id;
 
         Customer::create($payload);
 
@@ -147,7 +152,10 @@ class CustomerController extends Controller
         $search = (string) $request->input('q', '');
         $digits = preg_replace('/\D+/', '', $search);
 
+        $branchId = $request->user()->branch_id;
+
         $customers = Customer::where('is_active', true)
+            ->where('branch_id', $branchId)
             ->where(function ($q) use ($search, $digits) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");

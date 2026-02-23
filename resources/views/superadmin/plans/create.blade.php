@@ -1,0 +1,1 @@
+@extends('superadmin.plans.form')

@@ -7,9 +7,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RepairPart extends Model
 {
+    protected $attributes = [
+        'unit_price' => 0,
+        'total_price' => 0,
+        'quantity' => 1,
+    ];
+
     protected $fillable = [
         'repair_id',
-        'part_id',
+        'product_id',
         'part_name',
         'quantity',
         'unit_price',
@@ -24,6 +30,9 @@ class RepairPart extends Model
         'returned_quantity',
         'returned_at',
         'return_reason',
+        'rejected_by',
+        'rejected_at',
+        'reject_reason',
         'notes',
     ];
 
@@ -35,6 +44,7 @@ class RepairPart extends Model
         'approved_at' => 'datetime',
         'issued_at' => 'datetime',
         'returned_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     public function repair(): BelongsTo
@@ -42,9 +52,9 @@ class RepairPart extends Model
         return $this->belongsTo(Repair::class);
     }
 
-    public function part(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(Part::class);
+        return $this->belongsTo(Product::class);
     }
 
     public function requestedBy(): BelongsTo
@@ -60,6 +70,11 @@ class RepairPart extends Model
     public function issuedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'issued_by');
+    }
+
+    public function rejectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
     }
 
     // Status constants

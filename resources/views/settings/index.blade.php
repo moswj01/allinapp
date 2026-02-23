@@ -38,6 +38,12 @@
                 <i class="fas fa-plug text-purple-600 mr-2"></i>
                 @endif
                 {{ $groupLabel }}
+
+                @if($groupKey === 'receipt')
+                <a href="{{ route('receipt-templates.index') }}" class="ml-auto text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                    <i class="fas fa-paint-brush mr-1"></i>ออกแบบเทมเพลต →
+                </a>
+                @endif
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

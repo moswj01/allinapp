@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\BelongsToTenant;
+
 
 class Quotation extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'quotation_number',
         'branch_id',
@@ -88,4 +92,39 @@ class Quotation extends Model
     public const STATUS_REJECTED = 'rejected';
     public const STATUS_CONVERTED = 'converted';
     public const STATUS_EXPIRED = 'expired';
+
+    public static function getStatuses(): array
+    {
+        return [
+            self::STATUS_DRAFT => 'ร่าง',
+            self::STATUS_SENT => 'ส่งแล้ว',
+            self::STATUS_APPROVED => 'อนุมัติ',
+            self::STATUS_REJECTED => 'ปฏิเสธ',
+            self::STATUS_CONVERTED => 'สร้างบิลแล้ว',
+            self::STATUS_EXPIRED => 'หมดอายุ',
+        ];
+    }
+
+    public static function getStatusColor(string $status): string
+    {
+        return match ($status) {
+            self::STATUS_DRAFT => 'gray',
+            self::STATUS_SENT => 'blue',
+            self::STATUS_APPROVED => 'green',
+            self::STATUS_REJECTED => 'red',
+            self::STATUS_CONVERTED => 'purple',
+            self::STATUS_EXPIRED => 'yellow',
+            default => 'gray',
+        };
+    }
+
+    public function canBeEdited(): bool
+    {
+        return in_array($this->status, [self::STATUS_DRAFT]);
+    }
+
+    public function canBeConverted(): bool
+    {
+        return $this->status === self::STATUS_APPROVED && !$this->isExpired();
+    }
 }

@@ -25,7 +25,8 @@
     </div>
     @endif
 
-    <form action="{{ route('roles.store') }}" method="POST" class="space-y-6" x-data="permissionEditor()">
+    <form action="{{ route('roles.store') }}" method="POST" class="space-y-6" x-data="permissionEditor()"
+        data-js='@json($jsData)'>
         @csrf
 
         <!-- Basic Info -->
@@ -135,7 +136,7 @@
 
 @push('scripts')
 <script>
-    var __jsData = @json($jsData);
+    var __jsData = JSON.parse(document.querySelector('form[data-js]').dataset.js);
 
     function permissionEditor() {
         return {

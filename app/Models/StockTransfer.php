@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\BelongsToTenant;
+
 
 class StockTransfer extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'transfer_number',
         'from_branch_id',
@@ -80,4 +84,49 @@ class StockTransfer extends Model
     public const STATUS_SHIPPED = 'shipped';
     public const STATUS_RECEIVED = 'received';
     public const STATUS_CANCELLED = 'cancelled';
+
+    public static function getStatuses(): array
+    {
+        return [
+            self::STATUS_DRAFT => 'ร่าง',
+            self::STATUS_PENDING => 'รออนุมัติ',
+            self::STATUS_APPROVED => 'อนุมัติแล้ว',
+            self::STATUS_SHIPPED => 'จัดส่งแล้ว',
+            self::STATUS_RECEIVED => 'รับแล้ว',
+            self::STATUS_CANCELLED => 'ยกเลิก',
+        ];
+    }
+
+    public static function getStatusColor(string $status): string
+    {
+        return match ($status) {
+            self::STATUS_DRAFT => 'gray',
+            self::STATUS_PENDING => 'yellow',
+            self::STATUS_APPROVED => 'blue',
+            self::STATUS_SHIPPED => 'purple',
+            self::STATUS_RECEIVED => 'green',
+            self::STATUS_CANCELLED => 'red',
+            default => 'gray',
+        };
+    }
+
+    public function canBeApproved(): bool
+    {
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_PENDING]);
+    }
+
+    public function canBeShipped(): bool
+    {
+        return $this->status === self::STATUS_APPROVED;
+    }
+
+    public function canBeReceived(): bool
+    {
+        return $this->status === self::STATUS_SHIPPED;
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_PENDING, self::STATUS_APPROVED]);
+    }
 }

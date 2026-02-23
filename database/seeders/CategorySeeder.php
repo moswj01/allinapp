@@ -20,17 +20,17 @@ class CategorySeeder extends Seeder
             ['name' => 'พาวเวอร์แบงค์', 'type' => 'product', 'description' => 'แบตสำรอง'],
         ];
 
-        // Part Categories
+        // Part Categories (now merged as product type)
         $partCategories = [
-            ['name' => 'หน้าจอ LCD', 'type' => 'part', 'description' => 'หน้าจอ LCD สำหรับซ่อม'],
-            ['name' => 'แบตเตอรี่', 'type' => 'part', 'description' => 'แบตเตอรี่มือถือ'],
-            ['name' => 'ชุดชาร์จ', 'type' => 'part', 'description' => 'Charging Port, Flex'],
-            ['name' => 'กล้อง', 'type' => 'part', 'description' => 'กล้องหน้า, กล้องหลัง'],
-            ['name' => 'ลำโพง/ไมค์', 'type' => 'part', 'description' => 'ลำโพงสนทนา, ลำโพงกระดิ่ง, ไมโครโฟน'],
-            ['name' => 'บอร์ด/IC', 'type' => 'part', 'description' => 'Main Board, IC ต่างๆ'],
-            ['name' => 'ปุ่มกด/Flex', 'type' => 'part', 'description' => 'ปุ่ม Volume, Power, Flex Cable'],
-            ['name' => 'เคสกลาง/ฝาหลัง', 'type' => 'part', 'description' => 'Housing, Back Cover'],
-            ['name' => 'อื่นๆ', 'type' => 'part', 'description' => 'อะไหล่อื่นๆ'],
+            ['name' => 'หน้าจอ LCD', 'type' => 'product', 'description' => 'หน้าจอ LCD สำหรับซ่อม'],
+            ['name' => 'แบตเตอรี่', 'type' => 'product', 'description' => 'แบตเตอรี่มือถือ'],
+            ['name' => 'ชุดชาร์จ', 'type' => 'product', 'description' => 'Charging Port, Flex'],
+            ['name' => 'กล้อง', 'type' => 'product', 'description' => 'กล้องหน้า, กล้องหลัง'],
+            ['name' => 'ลำโพง/ไมค์', 'type' => 'product', 'description' => 'ลำโพงสนทนา, ลำโพงกระดิ่ง, ไมโครโฟน'],
+            ['name' => 'บอร์ด/IC', 'type' => 'product', 'description' => 'Main Board, IC ต่างๆ'],
+            ['name' => 'ปุ่มกด/Flex', 'type' => 'product', 'description' => 'ปุ่ม Volume, Power, Flex Cable'],
+            ['name' => 'เคสกลาง/ฝาหลัง', 'type' => 'product', 'description' => 'Housing, Back Cover'],
+            ['name' => 'อื่นๆ', 'type' => 'product', 'description' => 'สินค้าอื่นๆ'],
         ];
 
         foreach (array_merge($productCategories, $partCategories) as $category) {

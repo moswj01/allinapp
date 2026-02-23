@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Branch;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -27,12 +28,29 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
+        $user = User::withoutGlobalScopes()->where('email', $credentials['email'])->first();
 
-        if (!$user || !$user->is_active) {
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+            ]);
+        }
+
+        if (!$user->is_active) {
             throw ValidationException::withMessages([
                 'email' => 'บัญชีนี้ถูกระงับการใช้งาน',
             ]);
+        }
+
+        // Check tenant status (skip for super admins)
+        if (!$user->is_super_admin && $user->tenant_id) {
+            $tenant = Tenant::withoutGlobalScopes()->find($user->tenant_id);
+            if (!$tenant || !$tenant->isActive()) {
+                $msg = $tenant?->isSuspended()
+                    ? 'ร้านค้าของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ'
+                    : 'ร้านค้าของคุณไม่พร้อมใช้งาน';
+                throw ValidationException::withMessages(['email' => $msg]);
+            }
         }
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
@@ -40,6 +58,11 @@ class AuthController extends Controller
 
             // Log the login action
             \App\Models\AuditLog::log('login', $user);
+
+            // Super admin goes to admin dashboard
+            if ($user->is_super_admin) {
+                return redirect()->intended(route('superadmin.dashboard'));
+            }
 
             return redirect()->intended(route('dashboard'));
         }

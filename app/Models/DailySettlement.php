@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\BelongsToTenant;
+
 
 class DailySettlement extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'branch_id',
         'settlement_date',

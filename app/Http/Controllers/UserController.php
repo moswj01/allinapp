@@ -91,6 +91,14 @@ class UserController extends Controller
             return back()->with('error', 'คุณไม่มีสิทธิ์เพิ่มผู้ใช้ในสาขานี้');
         }
 
+        // Non-owner/admin cannot assign restricted roles
+        if (!$user->isOwner() && !$user->isAdmin()) {
+            $assignedRole = Role::find($validated['role_id']);
+            if ($assignedRole && in_array($assignedRole->slug, [Role::OWNER, Role::ADMIN, Role::MANAGER])) {
+                return back()->with('error', 'คุณไม่มีสิทธิ์กำหนดบทบาทนี้');
+            }
+        }
+
         $validated['password'] = Hash::make($validated['password']);
         $validated['is_active'] = $request->boolean('is_active', true);
 
@@ -163,6 +171,14 @@ class UserController extends Controller
         // Validate new branch access
         if (!$currentUser->canAccessBranch($validated['branch_id'])) {
             return back()->with('error', 'คุณไม่มีสิทธิ์ย้ายผู้ใช้ไปสาขานี้');
+        }
+
+        // Non-owner/admin cannot assign restricted roles
+        if (!$currentUser->isOwner() && !$currentUser->isAdmin()) {
+            $assignedRole = Role::find($validated['role_id']);
+            if ($assignedRole && in_array($assignedRole->slug, [Role::OWNER, Role::ADMIN, Role::MANAGER])) {
+                return back()->with('error', 'คุณไม่มีสิทธิ์กำหนดบทบาทนี้');
+            }
         }
 
         if (!empty($validated['password'])) {

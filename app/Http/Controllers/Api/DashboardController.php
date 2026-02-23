@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
-use App\Models\Part;
-use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\Repair;
 use App\Models\Branch;
@@ -18,14 +16,13 @@ class DashboardController extends Controller
     public function index(): JsonResponse
     {
         $totalProducts = Product::count();
-        $totalParts = Part::count();
         $totalCategories = Category::count();
         $totalBranches = Branch::count();
 
         $pendingRepairs = Repair::where('status', 'pending')->count();
         $inProgressRepairs = Repair::where('status', 'in_progress')->count();
 
-        $recentMovements = StockMovement::with(['stock.product', 'stock.part'])
+        $recentMovements = StockMovement::with(['movable'])
             ->latest()
             ->limit(10)
             ->get();
@@ -39,7 +36,6 @@ class DashboardController extends Controller
             'success' => true,
             'data' => [
                 'total_products' => $totalProducts,
-                'total_parts' => $totalParts,
                 'total_categories' => $totalCategories,
                 'total_branches' => $totalBranches,
                 'pending_repairs' => $pendingRepairs,

@@ -4,9 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\BelongsToTenant;
+
 
 class PettyCash extends Model
 {
+    use BelongsToTenant;
+
+    protected $table = 'petty_cash';
+
     protected $fillable = [
         'branch_id',
         'type',
