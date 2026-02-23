@@ -124,15 +124,20 @@ class LineWebhookController extends Controller
         $lines = ["📦 ผลค้นหา \"{$keyword}\" ({$products->count()} รายการ)\n"];
         $lines[] = str_repeat('─', 20);
 
-        foreach ($products as $product) {
-            // Calculate total from branch stocks (more accurate than product.quantity)
-            $branchStocks = BranchStock::where('stockable_id', $product->id)
-                ->where('stockable_type', 'App\\Models\\Product')
-                ->with('branch')
-                ->get();
+        // Get the main branch for this tenant
+        $mainBranch = Branch::where('is_main', true)->first();
 
-            $totalQty = $branchStocks->sum('quantity');
-            $qty = $totalQty > 0 ? $totalQty : $product->quantity;
+        foreach ($products as $product) {
+            // Get stock only for main branch
+            $branchStock = null;
+            if ($mainBranch) {
+                $branchStock = BranchStock::where('stockable_id', $product->id)
+                    ->where('stockable_type', 'App\\Models\\Product')
+                    ->where('branch_id', $mainBranch->id)
+                    ->first();
+            }
+
+            $qty = $branchStock ? $branchStock->quantity : $product->quantity;
             $status = $qty > 0 ? "✅ มีสินค้า" : "❌ สินค้าหมด";
             $lines[] = "\n📌 {$product->name}";
             if ($product->sku) {
@@ -140,14 +145,8 @@ class LineWebhookController extends Controller
             }
             $lines[] = "   คงเหลือ: {$qty} {$product->unit}";
             $lines[] = "   สถานะ: {$status}";
-
-            // Show per-branch stock
-            $activeBranchStocks = $branchStocks->where('quantity', '>', 0);
-            if ($activeBranchStocks->isNotEmpty()) {
-                foreach ($activeBranchStocks as $bs) {
-                    $branchName = $bs->branch->name ?? 'ไม่ระบุ';
-                    $lines[] = "   📍 {$branchName}: {$bs->quantity} {$product->unit}";
-                }
+            if ($mainBranch) {
+                $lines[] = "   📍 {$mainBranch->name}";
             }
         }
 
@@ -178,16 +177,23 @@ class LineWebhookController extends Controller
         $lines = ["💰 ราคาสินค้า \"{$keyword}\"\n"];
         $lines[] = str_repeat('─', 20);
 
+        // Get the main branch for this tenant
+        $mainBranch = Branch::where('is_main', true)->first();
+
         foreach ($products as $product) {
             $lines[] = "\n📌 {$product->name}";
             $lines[] = "   ราคาปลีก: ฿" . number_format($product->retail_price, 0);
             if ($product->wholesale_price > 0 && $product->wholesale_price != $product->retail_price) {
                 $lines[] = "   ราคาส่ง: ฿" . number_format($product->wholesale_price, 0);
             }
-            $totalQty = BranchStock::where('stockable_id', $product->id)
-                ->where('stockable_type', 'App\\Models\\Product')
-                ->sum('quantity');
-            $qty = $totalQty > 0 ? $totalQty : $product->quantity;
+            $branchStock = null;
+            if ($mainBranch) {
+                $branchStock = BranchStock::where('stockable_id', $product->id)
+                    ->where('stockable_type', 'App\\Models\\Product')
+                    ->where('branch_id', $mainBranch->id)
+                    ->first();
+            }
+            $qty = $branchStock ? $branchStock->quantity : $product->quantity;
             $lines[] = "   สถานะ: " . ($qty > 0 ? "✅ มีสินค้า ({$qty})" : "❌ สินค้าหมด");
         }
 
