@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Branch;
 use App\Models\BranchStock;
 use App\Models\Repair;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -18,27 +19,51 @@ class LineWebhookController extends Controller
      */
     public function webhook(Request $request)
     {
-        // Check if LINE OA is enabled
+        // Find the tenant by matching LINE channel secret from settings
+        $body = $request->getContent();
+        $signature = $request->header('X-Line-Signature');
+
+        // Search all LINE settings to find which tenant this webhook belongs to
+        $lineSettings = Setting::withoutGlobalScopes()
+            ->where('key', 'line_oa_channel_secret')
+            ->whereNotNull('value')
+            ->where('value', '!=', '')
+            ->get();
+
+        $matchedTenantId = null;
+        $channelSecret = null;
+
+        foreach ($lineSettings as $setting) {
+            $hash = base64_encode(hash_hmac('sha256', $body, $setting->value, true));
+            if ($signature === $hash) {
+                $matchedTenantId = $setting->tenant_id;
+                $channelSecret = $setting->value;
+                break;
+            }
+        }
+
+        if (!$matchedTenantId || !$channelSecret) {
+            Log::warning('LINE OA: No matching tenant found for signature.');
+            return response('Invalid signature', 403);
+        }
+
+        // Set tenant context for all subsequent queries
+        $tenant = Tenant::withoutGlobalScopes()->find($matchedTenantId);
+        if (!$tenant || !$tenant->isActive()) {
+            return response('OK', 200);
+        }
+        Tenant::setCurrent($tenant);
+
+        // Check if LINE OA is enabled for this tenant
         if (!Setting::get('line_oa_enabled', false)) {
             return response('OK', 200);
         }
 
-        $channelSecret = Setting::get('line_oa_channel_secret');
-        $accessToken   = Setting::get('line_oa_access_token');
+        $accessToken = Setting::get('line_oa_access_token');
 
-        if (!$channelSecret || !$accessToken) {
-            Log::warning('LINE OA: Channel Secret or Access Token not configured.');
+        if (!$accessToken) {
+            Log::warning('LINE OA: Access Token not configured for tenant ' . $tenant->id);
             return response('OK', 200);
-        }
-
-        // Verify signature
-        $signature = $request->header('X-Line-Signature');
-        $body = $request->getContent();
-        $hash = base64_encode(hash_hmac('sha256', $body, $channelSecret, true));
-
-        if ($signature !== $hash) {
-            Log::warning('LINE OA: Invalid signature.');
-            return response('Invalid signature', 403);
         }
 
         $events = $request->input('events', []);
