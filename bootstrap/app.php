@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Enable session-cookie auth for API routes (same-domain SPA)
+        $middleware->statefulApi();
+
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'branch.access' => \App\Http\Middleware\CheckBranchAccess::class,

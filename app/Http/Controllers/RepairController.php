@@ -653,12 +653,31 @@ class RepairController extends Controller
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($handle, [
-                'repair_number', 'date', 'customer_name', 'customer_phone', 'customer_line_id',
-                'device_type', 'device_brand', 'device_model', 'device_serial', 'device_imei',
-                'problem_description', 'status', 'priority', 'technician',
-                'estimated_cost', 'service_cost', 'parts_cost', 'total_cost', 'discount',
-                'deposit', 'paid_amount', 'payment_status',
-                'warranty_days', 'warranty_expires_at', 'internal_notes'
+                'repair_number',
+                'date',
+                'customer_name',
+                'customer_phone',
+                'customer_line_id',
+                'device_type',
+                'device_brand',
+                'device_model',
+                'device_serial',
+                'device_imei',
+                'problem_description',
+                'status',
+                'priority',
+                'technician',
+                'estimated_cost',
+                'service_cost',
+                'parts_cost',
+                'total_cost',
+                'discount',
+                'deposit',
+                'paid_amount',
+                'payment_status',
+                'warranty_days',
+                'warranty_expires_at',
+                'internal_notes'
             ]);
 
             foreach ($repairs as $repair) {
@@ -712,17 +731,47 @@ class RepairController extends Controller
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($handle, [
-                'customer_name', 'customer_phone', 'customer_line_id', 'customer_email', 'customer_address',
-                'device_type', 'device_brand', 'device_model', 'device_color', 'device_serial', 'device_imei',
-                'device_password', 'device_condition', 'device_accessories',
-                'problem_description', 'priority', 'estimated_cost', 'deposit', 'internal_notes'
+                'customer_name',
+                'customer_phone',
+                'customer_line_id',
+                'customer_email',
+                'customer_address',
+                'device_type',
+                'device_brand',
+                'device_model',
+                'device_color',
+                'device_serial',
+                'device_imei',
+                'device_password',
+                'device_condition',
+                'device_accessories',
+                'problem_description',
+                'priority',
+                'estimated_cost',
+                'deposit',
+                'internal_notes'
             ]);
 
             fputcsv($handle, [
-                'สมชาย ใจดี', '0891234567', '@somchai', 'somchai@email.com', '123 ถ.สุขุมวิท กรุงเทพฯ',
-                'smartphone', 'Apple', 'iPhone 15 Pro', 'สีดำ', 'C39X1234567', '351234567890123',
-                '1234', 'จอมีรอยขีดข่วนเล็กน้อย', 'สายชาร์จ, เคส',
-                'จอแตก เปลี่ยนจอใหม่', 'normal', '3500', '1000', 'ลูกค้าประจำ'
+                'สมชาย ใจดี',
+                '0891234567',
+                '@somchai',
+                'somchai@email.com',
+                '123 ถ.สุขุมวิท กรุงเทพฯ',
+                'smartphone',
+                'Apple',
+                'iPhone 15 Pro',
+                'สีดำ',
+                'C39X1234567',
+                '351234567890123',
+                '1234',
+                'จอมีรอยขีดข่วนเล็กน้อย',
+                'สายชาร์จ, เคส',
+                'จอแตก เปลี่ยนจอใหม่',
+                'normal',
+                '3500',
+                '1000',
+                'ลูกค้าประจำ'
             ]);
 
             fclose($handle);

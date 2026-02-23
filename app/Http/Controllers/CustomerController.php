@@ -193,8 +193,18 @@ class CustomerController extends Controller
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($handle, [
-                'code', 'name', 'phone', 'email', 'line_id', 'facebook_id',
-                'customer_type', 'address', 'tax_id', 'company_name', 'notes', 'is_active'
+                'code',
+                'name',
+                'phone',
+                'email',
+                'line_id',
+                'facebook_id',
+                'customer_type',
+                'address',
+                'tax_id',
+                'company_name',
+                'notes',
+                'is_active'
             ]);
 
             foreach ($customers as $customer) {
@@ -235,13 +245,29 @@ class CustomerController extends Controller
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($handle, [
-                'name', 'phone', 'email', 'line_id', 'facebook_id',
-                'customer_type', 'address', 'tax_id', 'company_name', 'notes'
+                'name',
+                'phone',
+                'email',
+                'line_id',
+                'facebook_id',
+                'customer_type',
+                'address',
+                'tax_id',
+                'company_name',
+                'notes'
             ]);
 
             fputcsv($handle, [
-                'สมชาย ใจดี', '0891234567', 'somchai@email.com', '@somchai', 'fb.com/somchai',
-                'retail', '123 ถ.สุขุมวิท กรุงเทพฯ', '1234567890123', 'บริษัท เอบีซี จำกัด', 'ลูกค้าประจำ'
+                'สมชาย ใจดี',
+                '0891234567',
+                'somchai@email.com',
+                '@somchai',
+                'fb.com/somchai',
+                'retail',
+                '123 ถ.สุขุมวิท กรุงเทพฯ',
+                '1234567890123',
+                'บริษัท เอบีซี จำกัด',
+                'ลูกค้าประจำ'
             ]);
 
             fclose($handle);

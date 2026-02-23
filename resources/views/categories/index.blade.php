@@ -140,80 +140,76 @@
 
 @push('scripts')
 <script>
-function categories() {
-    return {
-        items: [],
-        showModal: false,
-        editMode: false,
-        form: {
-            id: null,
-            name: '',
-            description: ''
-        },
-
-        async fetchData() {
-            const response = await fetch('/api/categories', {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            const data = await response.json();
-            this.items = data.data || data;
-        },
-
-        openModal() {
-            this.editMode = false;
-            this.resetForm();
-            this.showModal = true;
-        },
-        closeModal() {
-            this.showModal = false;
-            this.resetForm();
-        },
-        editItem(item) {
-            this.editMode = true;
-            this.form = {
-                ...item
-            };
-            this.showModal = true;
-        },
-        resetForm() {
-            this.form = {
+    function categories() {
+        return {
+            items: [],
+            showModal: false,
+            editMode: false,
+            form: {
                 id: null,
                 name: '',
                 description: ''
-            };
-        },
+            },
 
-        async saveItem() {
-            const url = this.editMode ? `/api/categories/${this.form.id}` : '/api/categories';
-            const response = await fetch(url, {
-                method: this.editMode ? 'PUT' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(this.form)
-            });
-            if (response.ok) {
-                this.closeModal();
-                this.fetchData();
-                alert(this.editMode ? 'แก้ไขสำเร็จ' : 'เพิ่มสำเร็จ');
-            }
-        },
+            async fetchData() {
+                const response = await fetch('/api/categories', {
+                    headers: apiHeaders()
+                });
+                const data = await response.json();
+                this.items = data.data || data;
+            },
 
-        async deleteItem(id) {
-            if (!confirm('ลบหมวดหมู่นี้?')) return;
-            const response = await fetch(`/api/categories/${id}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                this.fetchData();
-                alert('ลบสำเร็จ');
+            openModal() {
+                this.editMode = false;
+                this.resetForm();
+                this.showModal = true;
+            },
+            closeModal() {
+                this.showModal = false;
+                this.resetForm();
+            },
+            editItem(item) {
+                this.editMode = true;
+                this.form = {
+                    ...item
+                };
+                this.showModal = true;
+            },
+            resetForm() {
+                this.form = {
+                    id: null,
+                    name: '',
+                    description: ''
+                };
+            },
+
+            async saveItem() {
+                const url = this.editMode ? `/api/categories/${this.form.id}` : '/api/categories';
+                const response = await fetch(url, {
+                    method: this.editMode ? 'PUT' : 'POST',
+                    headers: apiJsonHeaders(),
+                    body: JSON.stringify(this.form)
+                });
+                if (response.ok) {
+                    this.closeModal();
+                    this.fetchData();
+                    alert(this.editMode ? 'แก้ไขสำเร็จ' : 'เพิ่มสำเร็จ');
+                }
+            },
+
+            async deleteItem(id) {
+                if (!confirm('ลบหมวดหมู่นี้?')) return;
+                const response = await fetch(`/api/categories/${id}`, {
+                    method: 'DELETE',
+                    headers: apiHeaders()
+                });
+                if (response.ok) {
+                    this.fetchData();
+                    alert('ลบสำเร็จ');
+                }
             }
         }
     }
-}
 </script>
 @endpush
 @endsection

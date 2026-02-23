@@ -29,6 +29,18 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- Global API helpers -->
+    <script>
+        window.csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
+        window.apiHeaders = (extra = {}) => Object.assign({
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': window.csrfToken(),
+        }, extra);
+        window.apiJsonHeaders = () => window.apiHeaders({
+            'Content-Type': 'application/json'
+        });
+    </script>
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 

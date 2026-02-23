@@ -95,9 +95,7 @@
 
             async fetchData() {
                 const response = await fetch('/api/branches', {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: apiHeaders()
                 });
                 const payload = await response.json();
                 this.items = payload.data || payload;
@@ -133,10 +131,7 @@
                 const url = this.editMode ? `/api/branches/${this.form.id}` : '/api/branches';
                 const response = await fetch(url, {
                     method: this.editMode ? 'PUT' : 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
+                    headers: apiJsonHeaders(),
                     body: JSON.stringify(this.form)
                 });
                 if (response.ok) {
@@ -154,7 +149,8 @@
             async deleteItem(id) {
                 if (!confirm('ลบสาขานี้?')) return;
                 const response = await fetch(`/api/branches/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: apiHeaders()
                 });
                 if (response.ok) {
                     this.fetchData();

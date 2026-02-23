@@ -308,9 +308,7 @@
                     : (\Illuminate\Support\Facades\Route::has('api.customers.search') 
                         ? route('api.customers.search') 
                         : url('/api/customer-search')) }}?q=${encodeURIComponent(q)}`, {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
+                        headers: apiHeaders()
                     });
                     if (!res.ok) throw new Error('ค้นหาลูกค้าไม่สำเร็จ');
                     const data = await res.json();

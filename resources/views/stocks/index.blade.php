@@ -247,18 +247,14 @@
                 if (this.typeFilter) url += `type=${this.typeFilter}`;
 
                 const response = await fetch(url, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: apiHeaders()
                 });
                 const payload = await response.json();
                 const list = payload?.data?.data ?? payload?.data ?? payload;
                 this.items = Array.isArray(list) ? list : (list?.data ?? []);
 
                 const branchResponse = await fetch('/api/branches', {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: apiHeaders()
                 });
                 const branchPayload = await branchResponse.json();
                 this.branches = branchPayload?.data?.data ?? branchPayload?.data ?? branchPayload;
@@ -268,9 +264,7 @@
                 let url = '/api/stock-movements?';
                 if (this.branchFilter) url += `branch_id=${this.branchFilter}`;
                 const response = await fetch(url, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: apiHeaders()
                 });
                 const payload = await response.json();
                 const list = payload?.data?.data ?? payload?.data ?? payload;
@@ -280,9 +274,7 @@
             async fetchItems() {
                 if (this.form.item_type === 'product') {
                     const response = await fetch('/api/products', {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
+                        headers: apiHeaders()
                     });
                     const payload = await response.json();
                     const list = payload?.data?.data ?? payload?.data ?? payload;
@@ -333,10 +325,7 @@
                 const url = this.modalType === 'in' ? '/api/stock/in' : '/api/stock/out';
                 const response = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
+                    headers: apiJsonHeaders(),
                     body: JSON.stringify(payload)
                 });
 

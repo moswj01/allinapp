@@ -552,9 +552,21 @@ class ProductController extends Controller
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($handle, [
-                'sku', 'barcode', 'name', 'category', 'supplier', 'description', 'unit',
-                'cost', 'retail_price', 'wholesale_price', 'vip_price', 'partner_price',
-                'stock', 'reorder_point', 'is_active'
+                'sku',
+                'barcode',
+                'name',
+                'category',
+                'supplier',
+                'description',
+                'unit',
+                'cost',
+                'retail_price',
+                'wholesale_price',
+                'vip_price',
+                'partner_price',
+                'stock',
+                'reorder_point',
+                'is_active'
             ]);
 
             foreach ($products as $product) {
