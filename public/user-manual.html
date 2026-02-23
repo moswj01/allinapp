@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คู่มือการใช้งานระบบ All In Mobile</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Sarabun', sans-serif; }
+        html { scroll-behavior: smooth; }
+        .sidebar { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; overflow-y: auto; }
+        .content { margin-left: 280px; }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+        .section-card { border-left: 4px solid #4f46e5; }
+        .step-number { width: 32px; height: 32px; min-width: 32px; background: #4f46e5; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+        .status-badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 13px; font-weight: 500; }
+        .nav-link { transition: all 0.15s; }
+        .nav-link:hover { background: #eef2ff; color: #4f46e5; }
+        .nav-link.active { background: #eef2ff; color: #4f46e5; border-right: 3px solid #4f46e5; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; }
+        th { background: #f9fafb; font-weight: 600; }
+        .tip-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+        .warn-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+        .info-box { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+        @media print {
+            .sidebar { display: none; }
+            .content { margin-left: 0; }
+            .no-print { display: none; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<!-- Sidebar Navigation -->
+<nav class="sidebar bg-white shadow-lg z-50 no-print">
+    <div class="p-4 border-b bg-indigo-600 text-white">
+        <h2 class="text-lg font-bold"><i class="fas fa-book mr-2"></i>คู่มือการใช้งาน</h2>
+        <p class="text-sm text-indigo-200 mt-1">All In Mobile System</p>
+    </div>
+    <div class="py-2">
+        <a href="#overview" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-home w-5 mr-2"></i>ภาพรวมระบบ</a>
+        <a href="#registration" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-user-plus w-5 mr-2"></i>สมัครใช้งาน & เข้าสู่ระบบ</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">หน้าหลัก</p>
+        <a href="#dashboard" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-tachometer-alt w-5 mr-2"></i>แดชบอร์ด</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">งานซ่อม</p>
+        <a href="#repairs" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-tools w-5 mr-2"></i>งานซ่อม</a>
+        <a href="#repair-parts" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-cogs w-5 mr-2"></i>เบิกอะไหล่</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">สินค้า & คลัง</p>
+        <a href="#products" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-box w-5 mr-2"></i>สินค้า</a>
+        <a href="#categories" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-tags w-5 mr-2"></i>หมวดหมู่</a>
+        <a href="#suppliers" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-truck w-5 mr-2"></i>ซัพพลายเออร์</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">จัดซื้อ</p>
+        <a href="#purchase-orders" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-file-invoice w-5 mr-2"></i>ใบสั่งซื้อ</a>
+        <a href="#goods-receipts" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-clipboard-check w-5 mr-2"></i>รับสินค้า</a>
+        <a href="#stock-takes" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-clipboard-list w-5 mr-2"></i>ตรวจนับสต๊อก</a>
+        <a href="#stock-transfers" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-exchange-alt w-5 mr-2"></i>โอนสต๊อก</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">ขาย & ลูกค้า</p>
+        <a href="#pos" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-cash-register w-5 mr-2"></i>POS ขายสินค้า</a>
+        <a href="#sales" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-receipt w-5 mr-2"></i>รายการขาย</a>
+        <a href="#quotations" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-file-alt w-5 mr-2"></i>ใบเสนอราคา</a>
+        <a href="#customers" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-users w-5 mr-2"></i>ลูกค้า</a>
+        <a href="#accounts-receivable" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-hand-holding-usd w-5 mr-2"></i>บัญชีลูกหนี้</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">การเงิน</p>
+        <a href="#petty-cash" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-wallet w-5 mr-2"></i>เงินสดย่อย</a>
+        <a href="#daily-settlement" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-calculator w-5 mr-2"></i>ปิดยอดประจำวัน</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">สาขา</p>
+        <a href="#branch-orders" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-store w-5 mr-2"></i>สั่งซื้อจากสาขาใหญ่</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">รายงาน</p>
+        <a href="#reports" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-chart-bar w-5 mr-2"></i>รายงานทั้งหมด</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">จัดการระบบ</p>
+        <a href="#users" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-user-cog w-5 mr-2"></i>พนักงาน & สิทธิ์</a>
+        <a href="#branches" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-building w-5 mr-2"></i>สาขา</a>
+        <a href="#settings" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-cog w-5 mr-2"></i>ตั้งค่าระบบ</a>
+        <a href="#line-oa" class="nav-link block px-4 py-2 text-sm"><i class="fab fa-line w-5 mr-2"></i>LINE OA แชทบอท</a>
+        <a href="#audit-logs" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-history w-5 mr-2"></i>Audit Log</a>
+
+        <p class="px-4 pt-3 pb-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">อื่นๆ</p>
+        <a href="#roles-permissions" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-shield-alt w-5 mr-2"></i>ตารางสิทธิ์การเข้าถึง</a>
+        <a href="#faq" class="nav-link block px-4 py-2 text-sm"><i class="fas fa-question-circle w-5 mr-2"></i>คำถามที่พบบ่อย</a>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="content">
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-bold mb-3"><i class="fas fa-mobile-alt mr-3"></i>คู่มือการใช้งานระบบ All In Mobile</h1>
+            <p class="text-xl text-indigo-200">ระบบจัดการร้านมือถือ สต๊อก งานซ่อม & การขายครบวงจร</p>
+            <div class="mt-4 flex items-center text-indigo-200 text-sm space-x-6">
+                <span><i class="fas fa-calendar mr-1"></i>เวอร์ชัน 1.0 — กรกฎาคม 2568</span>
+                <span><i class="fas fa-print mr-1 cursor-pointer no-print" onclick="window.print()"></i><span class="cursor-pointer no-print" onclick="window.print()">พิมพ์คู่มือ</span></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-4xl mx-auto px-8 py-10">
+
+        <!-- ==================== OVERVIEW ==================== -->
+        <section id="overview" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-home text-indigo-500 mr-3"></i>ภาพรวมระบบ
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <p class="text-lg leading-relaxed mb-4">
+                    <strong>All In Mobile</strong> เป็นระบบบริหารร้านมือถือแบบครบวงจร (SaaS) ออกแบบมาเพื่อร้านขายมือถือ ร้านซ่อม และร้านอุปกรณ์เสริม 
+                    รองรับการทำงานหลายสาขา (Multi-Branch) และหลายบริษัท (Multi-Tenant)
+                </p>
+                <h3 class="text-xl font-semibold mb-3">คุณสมบัติหลัก</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-start">
+                        <div class="step-number mr-3 mt-1 text-sm" style="width:28px;height:28px;min-width:28px;"><i class="fas fa-tools text-xs"></i></div>
+                        <div><strong>งานซ่อม</strong><br><span class="text-gray-600 text-sm">Kanban Board ติดตามสถานะ, เบิกอะไหล่, รับประกัน, เคลม</span></div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-3 mt-1 text-sm" style="width:28px;height:28px;min-width:28px;"><i class="fas fa-cash-register text-xs"></i></div>
+                        <div><strong>ขาย & POS</strong><br><span class="text-gray-600 text-sm">ขายหน้าร้าน, เงินสด, โอน, เครดิต, QR, บัตร</span></div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-3 mt-1 text-sm" style="width:28px;height:28px;min-width:28px;"><i class="fas fa-boxes text-xs"></i></div>
+                        <div><strong>คลังสินค้า</strong><br><span class="text-gray-600 text-sm">สต๊อกแยกสาขา, โอนสต๊อก, ตรวจนับ, นำเข้า CSV</span></div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-3 mt-1 text-sm" style="width:28px;height:28px;min-width:28px;"><i class="fab fa-line text-xs"></i></div>
+                        <div><strong>LINE OA แชทบอท</strong><br><span class="text-gray-600 text-sm">ลูกค้าเช็คสต๊อก, ราคา, ติดตามงานซ่อมผ่าน LINE</span></div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-3 mt-1 text-sm" style="width:28px;height:28px;min-width:28px;"><i class="fas fa-chart-line text-xs"></i></div>
+                        <div><strong>รายงาน</strong><br><span class="text-gray-600 text-sm">รายงานการขาย, ซ่อม, สต๊อก, การเงิน, จัดซื้อ</span></div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-3 mt-1 text-sm" style="width:28px;height:28px;min-width:28px;"><i class="fas fa-store text-xs"></i></div>
+                        <div><strong>หลายสาขา</strong><br><span class="text-gray-600 text-sm">จัดการสาขา, สั่งของจากสาขาใหญ่, ข้อมูลแยกสาขา</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== REGISTRATION ==================== -->
+        <section id="registration" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-user-plus text-indigo-500 mr-3"></i>สมัครใช้งาน & เข้าสู่ระบบ
+            </h2>
+
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">การสมัครใช้งาน (ครั้งแรก)</h3>
+                <p class="mb-4">สำหรับเจ้าของร้านที่ต้องการเริ่มใช้งานระบบ</p>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div>
+                            <strong>เข้าหน้าสมัคร</strong>
+                            <p class="text-gray-600 text-sm">เข้าเว็บไซต์แล้วกดปุ่ม "สมัครทดลองใช้ฟรี" หรือ "เริ่มต้นใช้งาน"</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div>
+                            <strong>กรอกข้อมูลร้าน</strong>
+                            <p class="text-gray-600 text-sm">ชื่อร้าน, ชื่อเจ้าของ, อีเมล, หมายเลขโทรศัพท์, รหัสผ่าน</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div>
+                            <strong>ระบบสร้างให้อัตโนมัติ</strong>
+                            <p class="text-gray-600 text-sm">ระบบจะสร้างบัญชีร้าน (Tenant), สิทธิ์พื้นฐาน 7 ตำแหน่ง, สาขาหลัก และบัญชีผู้ใช้เจ้าของร้านให้อัตโนมัติ</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">4</div>
+                        <div>
+                            <strong>เข้าสู่ระบบ</strong>
+                            <p class="text-gray-600 text-sm">เข้าสู่ระบบด้วยอีเมลและรหัสผ่านที่ลงทะเบียน</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">การเข้าสู่ระบบ</h3>
+                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                    <li>เข้าหน้า Login ของระบบ</li>
+                    <li>กรอก <strong>อีเมล</strong> และ <strong>รหัสผ่าน</strong></li>
+                    <li>กดปุ่ม <strong>"เข้าสู่ระบบ"</strong></li>
+                    <li>หากลืมรหัสผ่าน ให้กดลิงก์ "ลืมรหัสผ่าน" เพื่อรีเซ็ตผ่านอีเมล</li>
+                </ol>
+                <div class="tip-box mt-4">
+                    <strong><i class="fas fa-lightbulb mr-1"></i> เคล็ดลับ:</strong> หลังเข้าสู่ระบบ ระบบจะพาไปหน้าแดชบอร์ดของสาขาที่คุณสังกัดอัตโนมัติ
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== DASHBOARD ==================== -->
+        <section id="dashboard" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-tachometer-alt text-indigo-500 mr-3"></i>แดชบอร์ด (Dashboard)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <p class="mb-4">แดชบอร์ดเป็นหน้าแรกเมื่อเข้าสู่ระบบ แสดงข้อมูลสรุปภาพรวมของร้าน</p>
+                
+                <h4 class="font-semibold text-lg mb-2">ข้อมูลที่แสดง</h4>
+                <table class="mb-4">
+                    <thead>
+                        <tr><th>ส่วน</th><th>รายละเอียด</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>ยอดวันนี้</strong></td><td>จำนวนงานซ่อม, ยอดขาย, จำนวนบิลขาย, รายได้จากงานซ่อม</td></tr>
+                        <tr><td><strong>งานซ่อมรอดำเนินการ</strong></td><td>จำนวนงานซ่อมที่ยังไม่ส่งคืน/ยกเลิก</td></tr>
+                        <tr><td><strong>ยอดเดือนนี้</strong></td><td>รายได้จากการขาย, รายได้ซ่อม, รายได้รวม, จำนวนบิล</td></tr>
+                        <tr><td><strong>สถานะงานซ่อม (Kanban)</strong></td><td>แผนภูมิแสดงจำนวนงานซ่อมในแต่ละสถานะ</td></tr>
+                        <tr><td><strong>สินค้าใกล้หมด</strong></td><td>รายการสินค้าที่จำนวนสต๊อกต่ำกว่าจุดสั่งซื้อขั้นต่ำ</td></tr>
+                        <tr><td><strong>ขายเชื่อค้างชำระ</strong></td><td>จำนวนและมูลค่าการขายเชื่อที่ยังรอชำระ</td></tr>
+                        <tr><td><strong>ลูกหนี้ค้างชำระ</strong></td><td>ยอดค้างชำระเกินกำหนดและยอดคงเหลือทั้งหมด</td></tr>
+                        <tr><td><strong>กิจกรรมล่าสุด</strong></td><td>งานซ่อมและรายการขาย 5 รายการล่าสุด</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="tip-box">
+                    <strong><i class="fas fa-lightbulb mr-1"></i> สำหรับ Owner/Admin:</strong> สามารถเลือกดูข้อมูลของสาขาอื่นได้โดยเปลี่ยนสาขาจากตัวเลือกด้านบน พนักงานทั่วไปจะเห็นเฉพาะข้อมูลสาขาตนเอง
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== REPAIRS ==================== -->
+        <section id="repairs" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-tools text-indigo-500 mr-3"></i>งานซ่อม (Repairs)
+            </h2>
+
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">ภาพรวมงานซ่อม</h3>
+                <p class="mb-4">ระบบงานซ่อมรองรับการจัดการงานซ่อมตั้งแต่รับเครื่อง → ซ่อม → ส่งคืน พร้อมระบบ Kanban Board สำหรับติดตามสถานะ</p>
+
+                <h4 class="font-semibold text-lg mb-2">สถานะงานซ่อม (Workflow)</h4>
+                <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-x-auto">
+                    <div class="flex items-center space-x-2 text-sm min-w-max">
+                        <span class="status-badge bg-yellow-100 text-yellow-800">รอซ่อม</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-orange-100 text-orange-800">รออะไหล่</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-purple-100 text-purple-800">เสนอราคา</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-blue-100 text-blue-800">ลูกค้ายืนยัน</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-indigo-100 text-indigo-800">กำลังซ่อม</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-cyan-100 text-cyan-800">ตรวจสอบ QC</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-green-100 text-green-800">ซ่อมเสร็จ</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-emerald-100 text-emerald-800" style="background:#d1fae5;color:#065f46">ส่งคืนแล้ว</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mb-2">สถานะพิเศษ: <span class="status-badge bg-red-100 text-red-800">ยกเลิก</span> <span class="status-badge bg-amber-100 text-amber-800">เคลม</span></p>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">การสร้างงานซ่อมใหม่</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div>
+                            <strong>ไปที่ งานซ่อม → กดปุ่ม "สร้างงานซ่อม"</strong>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div>
+                            <strong>กรอกข้อมูลลูกค้า</strong>
+                            <p class="text-gray-600 text-sm">ชื่อ, เบอร์โทร, LINE ID, อีเมล, ที่อยู่ (ค้นหาลูกค้าเก่าจากเบอร์โทรได้)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div>
+                            <strong>กรอกข้อมูลอุปกรณ์</strong>
+                            <p class="text-gray-600 text-sm">ประเภท, ยี่ห้อ, รุ่น, สี, ซีเรียล, IMEI, รหัสเครื่อง, สภาพ, อุปกรณ์เสริม</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">4</div>
+                        <div>
+                            <strong>รายละเอียดปัญหาและราคา</strong>
+                            <p class="text-gray-600 text-sm">อาการเสีย, ลำดับความสำคัญ (ปกติ/ด่วน/ด่วนมาก), ประเภทการซ่อม, ค่าบริการ, ส่วนลด</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">5</div>
+                        <div>
+                            <strong>กดบันทึก</strong>
+                            <p class="text-gray-600 text-sm">ระบบสร้างเลขงานซ่อมอัตโนมัติ (เช่น RPR-2025-0001) และเข้าสถานะ "รอซ่อม"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">การจัดการงานซ่อม</h3>
+                <table>
+                    <thead>
+                        <tr><th>การดำเนินการ</th><th>คำอธิบาย</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>เปลี่ยนสถานะ</strong></td><td>กดปุ่มเปลี่ยนสถานะตามลำดับ workflow จากรอซ่อม → กำลังซ่อม → QC → ซ่อมเสร็จ → ส่งคืน</td></tr>
+                        <tr><td><strong>มอบหมายช่าง</strong></td><td>เลือกช่างผู้รับผิดชอบจากรายชื่อพนักงาน</td></tr>
+                        <tr><td><strong>เบิกอะไหล่</strong></td><td>เพิ่มรายการอะไหล่ที่ใช้ในงานซ่อม (ดึงจากสต๊อกสินค้า)</td></tr>
+                        <tr><td><strong>บันทึกการชำระ</strong></td><td>บันทึกยอดชำระเงินจากลูกค้า (จ่ายเต็ม/บางส่วน)</td></tr>
+                        <tr><td><strong>สื่อสารกับลูกค้า</strong></td><td>บันทึกข้อความสื่อสาร เช่น แจ้งราคา, รายงานความคืบหน้า</td></tr>
+                        <tr><td><strong>พิมพ์ใบรับซ่อม</strong></td><td>พิมพ์ใบรับซ่อมมอบให้ลูกค้า</td></tr>
+                        <tr><td><strong>เคลม</strong></td><td>สร้างงานเคลมจากงานซ่อมเดิมที่อยู่ในช่วงรับประกัน</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">การรับประกัน (Warranty)</h3>
+                <p class="mb-2">ตั้งค่าจำนวนวันรับประกันได้ในแต่ละงานซ่อม</p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li>ระบุจำนวน <strong>วันรับประกัน</strong> เมื่อสร้างงาน</li>
+                    <li>ระบบคำนวณ <strong>วันหมดรับประกัน</strong> ให้อัตโนมัติ</li>
+                    <li>หากลูกค้ามาเคลมภายในช่วงรับประกัน สามารถกดสร้าง <strong>"งานเคลม"</strong> ได้ ซึ่งจะลิงก์กับงานเดิม</li>
+                </ul>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">สถานะการชำระเงิน</h3>
+                <table>
+                    <thead>
+                        <tr><th>สถานะ</th><th>ความหมาย</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="status-badge bg-red-100 text-red-800">ยังไม่ชำระ</span></td><td>ลูกค้ายังไม่ชำระเงินค่าซ่อม</td></tr>
+                        <tr><td><span class="status-badge bg-yellow-100 text-yellow-800">ชำระบางส่วน</span></td><td>ลูกค้าชำระเงินบางส่วนแล้ว (เช่น มัดจำ)</td></tr>
+                        <tr><td><span class="status-badge bg-green-100 text-green-800">ชำระแล้ว</span></td><td>ลูกค้าชำระเงินครบแล้ว</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ==================== REPAIR PARTS ==================== -->
+        <section id="repair-parts" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-cogs text-indigo-500 mr-3"></i>เบิกอะไหล่ (Parts Management)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">ระบบเบิกอะไหล่</h3>
+                <p class="mb-4">ช่างสามารถเบิกอะไหล่จากสต๊อกเพื่อใช้ในงานซ่อม โดยมีระบบอนุมัติจากผู้จัดการ</p>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li><strong>เบิกอะไหล่:</strong> ในหน้ารายละเอียดงานซ่อม เพิ่มรายการอะไหล่ที่ต้องการ</li>
+                    <li><strong>อนุมัติเบิกอะไหล่:</strong> เมนู "อนุมัติเบิกอะไหล่" — ผู้จัดการ/ผู้ดูแลตรวจสอบและอนุมัติ</li>
+                    <li><strong>รายงานเบิกอะไหล่:</strong> เมนู "รายงานเบิกอะไหล่" — ดูสรุปการเบิกแยกตามช่าง, สินค้า, ช่วงเวลา</li>
+                </ul>
+                <div class="info-box mt-4">
+                    <strong><i class="fas fa-check-circle mr-1"></i> หมายเหตุ:</strong> เมื่ออนุมัติเบิกอะไหล่แล้ว ระบบจะหักสต๊อกอัตโนมัติ
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== PRODUCTS ==================== -->
+        <section id="products" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-box text-indigo-500 mr-3"></i>สินค้า (Products)
+            </h2>
+
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">จัดการสินค้า</h3>
+                <h4 class="font-semibold mb-2">การเพิ่มสินค้าใหม่</h4>
+                <table class="mb-4">
+                    <thead>
+                        <tr><th>ฟิลด์</th><th>คำอธิบาย</th><th>จำเป็น</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>รหัสสินค้า (SKU)</td><td>รหัสเฉพาะของสินค้า (ไม่ซ้ำกัน)</td><td>✅</td></tr>
+                        <tr><td>บาร์โค้ด</td><td>หมายเลขบาร์โค้ดสำหรับสแกน</td><td>—</td></tr>
+                        <tr><td>ชื่อสินค้า</td><td>ชื่อที่แสดงในระบบ</td><td>✅</td></tr>
+                        <tr><td>หมวดหมู่</td><td>หมวดหมู่ย่อย เช่น เคส, ฟิล์ม, สายชาร์จ</td><td>—</td></tr>
+                        <tr><td>ซัพพลายเออร์</td><td>ผู้จำหน่าย</td><td>—</td></tr>
+                        <tr><td>ราคาทุน</td><td>ราคาซื้อ</td><td>✅</td></tr>
+                        <tr><td>ราคาปลีก</td><td>ราคาขายหน้าร้าน</td><td>✅</td></tr>
+                        <tr><td>ราคาส่ง</td><td>ราคาสำหรับตัวแทน/พ่อค้าส่ง</td><td>—</td></tr>
+                        <tr><td>ราคาช่าง (VIP)</td><td>ราคาสำหรับช่าง</td><td>—</td></tr>
+                        <tr><td>ราคาออนไลน์</td><td>ราคาขายออนไลน์</td><td>—</td></tr>
+                        <tr><td>หน่วย</td><td>เช่น ชิ้น, กล่อง, แพ็ค</td><td>—</td></tr>
+                        <tr><td>จุดสั่งซื้อขั้นต่ำ</td><td>จำนวนขั้นต่ำก่อนแจ้งเตือนสต๊อกต่ำ</td><td>—</td></tr>
+                        <tr><td>จำนวนเริ่มต้น</td><td>จำนวนสต๊อกเริ่มต้นเมื่อเพิ่มสินค้าใหม่</td><td>—</td></tr>
+                        <tr><td>รูปภาพ</td><td>อัพโหลดรูปสินค้า</td><td>—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">นำเข้าสินค้าจาก CSV</h3>
+                <p class="mb-2">สำหรับเพิ่มสินค้าจำนวนมากพร้อมกัน</p>
+                <div class="space-y-3">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div><strong>ดาวน์โหลดเทมเพลต</strong> — กดปุ่ม "ดาวน์โหลดเทมเพลต CSV" เพื่อรับไฟล์ตัวอย่าง</div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div><strong>กรอกข้อมูลลงเทมเพลต</strong> — เปิดไฟล์ CSV ด้วย Excel กรอกข้อมูลสินค้าแต่ละรายการ</div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div><strong>อัพโหลดไฟล์</strong> — กดปุ่ม "นำเข้า CSV" แล้วเลือกไฟล์ ระบบจะเพิ่ม/อัพเดตสินค้าอัตโนมัติ</div>
+                    </div>
+                </div>
+                <div class="tip-box mt-4">
+                    <strong><i class="fas fa-lightbulb mr-1"></i> เคล็ดลับ:</strong> หากชื่อหมวดหมู่ในไฟล์ CSV ยังไม่มีในระบบ ระบบจะสร้างหมวดหมู่ใหม่ให้อัตโนมัติ
+                </div>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">การค้นหาด้วยบาร์โค้ด</h3>
+                <p>ระบบรองรับการค้นหาสินค้าด้วยเครื่องสแกนบาร์โค้ดในหน้า POS และหน้าจัดการสินค้า สแกนหรือพิมพ์หมายเลขบาร์โค้ดเพื่อค้นหาสินค้าได้ทันที</p>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">ปรับสต๊อกด้วยมือ</h3>
+                <p class="mb-2">ในหน้ารายละเอียดสินค้า สามารถปรับจำนวนสต๊อกเพิ่ม/ลดได้</p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li>ระบุจำนวนที่ต้องการปรับ (+/-)</li>
+                    <li>ระบุเหตุผลการปรับ (เช่น สินค้าชำรุด, นับผิด)</li>
+                    <li>ระบบบันทึก <strong>Stock Movement</strong> เป็นหลักฐานทุกครั้ง</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ==================== CATEGORIES ==================== -->
+        <section id="categories" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-tags text-indigo-500 mr-3"></i>หมวดหมู่ (Categories)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <p class="mb-4">จัดกลุ่มสินค้าตามหมวดหมู่ เช่น เคสมือถือ, ฟิล์มกระจก, สายชาร์จ, อะแดปเตอร์, หูฟัง เป็นต้น</p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li>เพิ่ม/แก้ไข/ลบหมวดหมู่ได้</li>
+                    <li>ระบุชื่อหมวดหมู่และคำอธิบาย</li>
+                    <li>ใช้ในการกรองสินค้าและจัดทำรายงาน</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ==================== SUPPLIERS ==================== -->
+        <section id="suppliers" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-truck text-indigo-500 mr-3"></i>ซัพพลายเออร์ (Suppliers)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <p class="mb-4">จัดการข้อมูลผู้จำหน่ายสินค้า</p>
+                <table>
+                    <thead><tr><th>ข้อมูล</th><th>รายละเอียด</th></tr></thead>
+                    <tbody>
+                        <tr><td>ชื่อซัพพลายเออร์</td><td>ชื่อบริษัท/ร้านค้า</td></tr>
+                        <tr><td>ผู้ติดต่อ</td><td>ชื่อผู้ติดต่อ</td></tr>
+                        <tr><td>เบอร์โทร / อีเมล</td><td>ช่องทางติดต่อ</td></tr>
+                        <tr><td>ที่อยู่</td><td>ที่อยู่สำหรับสั่งซื้อ</td></tr>
+                        <tr><td>เลขผู้เสียภาษี</td><td>Tax ID สำหรับออกเอกสาร</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ==================== PURCHASE ORDERS ==================== -->
+        <section id="purchase-orders" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-file-invoice text-indigo-500 mr-3"></i>ใบสั่งซื้อ (Purchase Orders)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">ขั้นตอนการสั่งซื้อ</h3>
+                <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-x-auto">
+                    <div class="flex items-center space-x-2 text-sm min-w-max">
+                        <span class="status-badge bg-gray-100 text-gray-800">ร่าง (Draft)</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-green-100 text-green-800">อนุมัติ (Approved)</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-yellow-100 text-yellow-800">รับบางส่วน (Partial)</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-blue-100 text-blue-800">รับครบ (Received)</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div>
+                            <strong>สร้างใบสั่งซื้อ</strong>
+                            <p class="text-gray-600 text-sm">เลือกซัพพลายเออร์, วันที่คาดว่าจะได้รับ, เพิ่มรายการสินค้าที่ต้องการสั่ง</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div>
+                            <strong>อนุมัติใบสั่งซื้อ</strong>
+                            <p class="text-gray-600 text-sm">ผู้จัดการตรวจสอบและกดอนุมัติ (บันทึกผู้อนุมัติและวันที่อนุมัติ)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div>
+                            <strong>รับสินค้า</strong>
+                            <p class="text-gray-600 text-sm">เมื่อสินค้ามาถึง ไปที่เมนู "รับสินค้า" เพื่อบันทึกจำนวนที่ได้รับจริง (ดูเพิ่มในหัวข้อ รับสินค้า)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="tip-box mt-4">
+                    <strong><i class="fas fa-lightbulb mr-1"></i> หมายเหตุ:</strong> ใบสั่งซื้อที่อนุมัติแล้วไม่สามารถแก้ไขได้ หากต้องการยกเลิกต้องระบุเหตุผล
+                </div>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">ข้อมูลในใบสั่งซื้อ</h3>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li><strong>เลขที่ PO:</strong> ระบบสร้างอัตโนมัติ (เช่น PO-250715-0001)</li>
+                    <li><strong>ซัพพลายเออร์:</strong> เลือกจากรายชื่อ</li>
+                    <li><strong>วันที่คาดว่าจะได้รับ:</strong> กำหนดวันรับสินค้า</li>
+                    <li><strong>รายการสินค้า:</strong> ชื่อ, จำนวน, ราคาต่อหน่วย</li>
+                    <li><strong>ส่วนลด / ภาษี:</strong> คำนวณอัตโนมัติ</li>
+                    <li><strong>เงื่อนไข / หมายเหตุ:</strong> ข้อมูลเพิ่มเติม</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ==================== GOODS RECEIPTS ==================== -->
+        <section id="goods-receipts" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-clipboard-check text-indigo-500 mr-3"></i>รับสินค้า (Goods Receipts)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">ขั้นตอนการรับสินค้า</h3>
+                <p class="mb-4">ใช้บันทึกการรับสินค้าจริงจากใบสั่งซื้อ (PO) ที่ผ่านการอนุมัติ</p>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div>
+                            <strong>เลือกใบสั่งซื้อ</strong>
+                            <p class="text-gray-600 text-sm">ระบบแสดงรายการ PO ที่อนุมัติแล้วและยังรับไม่ครบ</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div>
+                            <strong>กรอกจำนวนที่รับจริง</strong>
+                            <p class="text-gray-600 text-sm">ระบุจำนวนสินค้าแต่ละรายการที่ได้รับจริง, เลขที่ใบกำกับภาษี (ถ้ามี)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div>
+                            <strong>ระบบอัพเดตอัตโนมัติ</strong>
+                            <p class="text-gray-600 text-sm">สต๊อกเพิ่มทันที, บันทึก Stock Movement ประเภท "เข้า", อัพเดตสถานะ PO</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="warn-box mt-4">
+                    <strong><i class="fas fa-exclamation-triangle mr-1"></i> สำคัญ:</strong> ใบรับสินค้าไม่สามารถแก้ไขหรือลบได้หลังบันทึก เพื่อความถูกต้องของข้อมูลสต๊อก
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STOCK TAKES ==================== -->
+        <section id="stock-takes" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-clipboard-list text-indigo-500 mr-3"></i>ตรวจนับสต๊อก (Stock Takes)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">ขั้นตอนการตรวจนับ</h3>
+                <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-x-auto">
+                    <div class="flex items-center space-x-2 text-sm min-w-max">
+                        <span class="status-badge bg-gray-100 text-gray-800">ร่าง</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-blue-100 text-blue-800">กำลังนับ</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-yellow-100 text-yellow-800">นับเสร็จ</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-green-100 text-green-800">อนุมัติ</span>
+                    </div>
+                </div>
+
+                <table class="mb-4">
+                    <thead><tr><th>ประเภทการนับ</th><th>คำอธิบาย</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>นับทั้งหมด (Full)</strong></td><td>นับสินค้าทุกรายการในสาขา</td></tr>
+                        <tr><td><strong>นับบางส่วน (Partial)</strong></td><td>เลือกนับเฉพาะบางรายการ</td></tr>
+                        <tr><td><strong>นับตามหมวดหมู่ (Category)</strong></td><td>นับเฉพาะหมวดหมู่ที่เลือก</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div><strong>สร้างรอบนับ</strong> — เลือกประเภทการนับ, ระบบดึงรายการสินค้าพร้อมจำนวนในระบบมาให้อัตโนมัติ</div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div><strong>เริ่มนับ</strong> — กด "เริ่มนับ" ระบบบันทึกเวลาเริ่ม</div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div><strong>กรอกจำนวนจริง</strong> — กรอกจำนวนที่นับได้จริงในแต่ละรายการ ระบบคำนวณ "ผลต่าง" ให้อัตโนมัติ</div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">4</div>
+                        <div><strong>นับเสร็จ</strong> — กด "นับเสร็จ" เมื่อนับครบแล้ว</div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">5</div>
+                        <div><strong>อนุมัติ</strong> — ผู้จัดการตรวจสอบผลต่างและกด "อนุมัติ" → ระบบปรับสต๊อกตามจำนวนจริง</div>
+                    </div>
+                </div>
+                <div class="info-box mt-4">
+                    <strong><i class="fas fa-check-circle mr-1"></i> เมื่ออนุมัติ:</strong> ระบบจะปรับสต๊อกทุกรายการที่มีผลต่างให้ตรงกับจำนวนจริง พร้อมบันทึก Stock Movement ประเภท "ปรับยอด"
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STOCK TRANSFERS ==================== -->
+        <section id="stock-transfers" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-exchange-alt text-indigo-500 mr-3"></i>โอนสต๊อก (Stock Transfers)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">โอนสินค้าระหว่างสาขา</h3>
+                <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-x-auto">
+                    <div class="flex items-center space-x-2 text-sm min-w-max">
+                        <span class="status-badge bg-yellow-100 text-yellow-800">รอดำเนินการ</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-green-100 text-green-800">อนุมัติ</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-blue-100 text-blue-800">จัดส่งแล้ว</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-purple-100 text-purple-800">รับแล้ว</span>
+                    </div>
+                </div>
+
+                <table>
+                    <thead><tr><th>ขั้นตอน</th><th>สิ่งที่เกิดขึ้น</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>สร้างคำขอโอน</strong></td><td>เลือกสาขาต้นทาง → สาขาปลายทาง, เพิ่มรายการสินค้าและจำนวน</td></tr>
+                        <tr><td><strong>อนุมัติ</strong></td><td>ผู้จัดการตรวจสอบและอนุมัติคำขอ</td></tr>
+                        <tr><td><strong>จัดส่ง</strong></td><td><strong>หักสต๊อกจากสาขาต้นทาง</strong> ทันที, บันทึก Stock Movement "โอนออก"</td></tr>
+                        <tr><td><strong>รับสินค้า</strong></td><td><strong>เพิ่มสต๊อกที่สาขาปลายทาง</strong>, บันทึก Stock Movement "โอนเข้า"</td></tr>
+                        <tr><td><strong>ยกเลิก</strong></td><td>ต้องระบุเหตุผลยกเลิก, บันทึกผู้ยกเลิก</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ==================== POS ==================== -->
+        <section id="pos" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-cash-register text-indigo-500 mr-3"></i>POS ขายสินค้า (Point of Sale)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">ขั้นตอนการขาย</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div>
+                            <strong>เปิดหน้า POS</strong>
+                            <p class="text-gray-600 text-sm">ไปที่เมนู "POS ขายสินค้า"</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div>
+                            <strong>เลือกสินค้า</strong>
+                            <p class="text-gray-600 text-sm">ค้นหาสินค้าจากชื่อ/SKU/บาร์โค้ด หรือสแกนบาร์โค้ด ระบบแสดงจำนวนสต๊อกคงเหลือ</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div>
+                            <strong>เลือกลูกค้า (ถ้ามี)</strong>
+                            <p class="text-gray-600 text-sm">เลือกลูกค้าจากรายชื่อ หรือเพิ่มลูกค้าใหม่ (จำเป็นสำหรับขายเชื่อ)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">4</div>
+                        <div>
+                            <strong>ใส่ส่วนลดและภาษี</strong>
+                            <p class="text-gray-600 text-sm">ส่วนลดเป็นจำนวนเงินหรือเปอร์เซ็นต์, ระบุอัตราภาษี (ถ้าต้องการ)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">5</div>
+                        <div>
+                            <strong>เลือกวิธีชำระเงิน</strong>
+                            <p class="text-gray-600 text-sm">รองรับ: เงินสด, โอนเงิน, QR Payment, บัตรเครดิต, เครดิต (ขายเชื่อ), จ่ายแบบผสม</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">6</div>
+                        <div>
+                            <strong>ชำระเงินและออกใบเสร็จ</strong>
+                            <p class="text-gray-600 text-sm">กรอกจำนวนเงินที่รับ ระบบคำนวณเงินทอนให้ สามารถออกใบกำกับภาษีได้</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">วิธีการชำระเงิน</h3>
+                <table>
+                    <thead><tr><th>วิธีชำระ</th><th>คำอธิบาย</th></tr></thead>
+                    <tbody>
+                        <tr><td><i class="fas fa-money-bill-wave mr-1 text-green-600"></i> เงินสด</td><td>รับเงินสด คำนวณเงินทอนอัตโนมัติ</td></tr>
+                        <tr><td><i class="fas fa-university mr-1 text-blue-600"></i> โอนเงิน</td><td>โอนเงินผ่านบัญชีธนาคาร</td></tr>
+                        <tr><td><i class="fas fa-qrcode mr-1 text-purple-600"></i> QR Payment</td><td>ชำระผ่าน PromptPay / QR Code</td></tr>
+                        <tr><td><i class="fas fa-credit-card mr-1 text-indigo-600"></i> บัตรเครดิต</td><td>รูดบัตรเครดิต/เดบิต</td></tr>
+                        <tr><td><i class="fas fa-file-invoice-dollar mr-1 text-orange-600"></i> เครดิต</td><td>ขายเชื่อ — ต้องระบุวันครบกำหนด, สร้างบัญชีลูกหนี้อัตโนมัติ</td></tr>
+                        <tr><td><i class="fas fa-random mr-1 text-gray-600"></i> ผสม</td><td>ชำระหลายวิธีรวมกัน เช่น เงินสดบางส่วน + โอน</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ==================== SALES ==================== -->
+        <section id="sales" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-receipt text-indigo-500 mr-3"></i>รายการขาย (Sales List)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">จัดการรายการขาย</h3>
+                <p class="mb-4">ดูรายการขายทั้งหมดพร้อมสรุปยอดรายวัน</p>
+                <table class="mb-4">
+                    <thead><tr><th>สถานะ</th><th>ความหมาย</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="status-badge bg-yellow-100 text-yellow-800">รอดำเนินการ</span></td><td>สร้างรายการแล้วยังไม่ชำระ</td></tr>
+                        <tr><td><span class="status-badge bg-green-100 text-green-800">ชำระแล้ว</span></td><td>ชำระเงินครบถ้วน</td></tr>
+                        <tr><td><span class="status-badge bg-blue-100 text-blue-800">ชำระบางส่วน</span></td><td>ชำระบางส่วน (ขายเชื่อ)</td></tr>
+                        <tr><td><span class="status-badge bg-red-100 text-red-800">ยกเลิก</span></td><td>ยกเลิกรายการแล้ว (คืนสต๊อก)</td></tr>
+                    </tbody>
+                </table>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li><strong>กรองข้อมูล:</strong> วันที่, สถานะ, ค้นหาจากเลขบิล/ชื่อลูกค้า/เบอร์โทร</li>
+                    <li><strong>ดูรายละเอียด:</strong> กดที่รายการเพื่อดูรายละเอียด</li>
+                    <li><strong>พิมพ์ใบเสร็จ:</strong> พิมพ์ใบเสร็จสำหรับลูกค้า</li>
+                    <li><strong>ยกเลิกบิล:</strong> ยกเลิกรายการขาย (สต๊อกจะถูกคืนอัตโนมัติ)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ==================== QUOTATIONS ==================== -->
+        <section id="quotations" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-file-alt text-indigo-500 mr-3"></i>ใบเสนอราคา (Quotations)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">จัดการใบเสนอราคา</h3>
+                <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-x-auto">
+                    <div class="flex items-center space-x-2 text-sm min-w-max">
+                        <span class="status-badge bg-gray-100 text-gray-800">ร่าง</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-blue-100 text-blue-800">ส่งแล้ว</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-green-100 text-green-800">อนุมัติ</span>
+                        /
+                        <span class="status-badge bg-red-100 text-red-800">ปฏิเสธ</span>
+                        /
+                        <span class="status-badge bg-gray-100 text-gray-600">หมดอายุ</span>
+                    </div>
+                </div>
+
+                <h4 class="font-semibold mb-2">ข้อมูลในใบเสนอราคา</h4>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li><strong>เลขที่:</strong> QT-YYMMDD-XXXX (สร้างอัตโนมัติ)</li>
+                    <li><strong>ลูกค้า:</strong> เลือกจากรายชื่อหรือพิมพ์ข้อมูลเอง</li>
+                    <li><strong>หัวข้อ:</strong> รายละเอียดงานที่เสนอราคา</li>
+                    <li><strong>วันหมดอายุ:</strong> กำหนดวันที่ใบเสนอราคามีผล</li>
+                    <li><strong>รายการสินค้า/บริการ:</strong> ชื่อ, จำนวน, ราคาต่อหน่วย</li>
+                    <li><strong>ส่วนลด / ภาษี:</strong> ส่วนลดแบบคงที่หรือเปอร์เซ็นต์</li>
+                    <li><strong>เงื่อนไข / หมายเหตุ:</strong> ข้อตกลงเพิ่มเติม</li>
+                </ul>
+
+                <div class="tip-box mt-4">
+                    <strong><i class="fas fa-lightbulb mr-1"></i> เคล็ดลับ:</strong> ใบเสนอราคาที่อนุมัติแล้วสามารถแปลงเป็นรายการขาย (Sale) ได้โดยตรง
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== CUSTOMERS ==================== -->
+        <section id="customers" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-users text-indigo-500 mr-3"></i>ลูกค้า (Customers)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">จัดการข้อมูลลูกค้า</h3>
+                <table class="mb-4">
+                    <thead><tr><th>ฟิลด์</th><th>คำอธิบาย</th></tr></thead>
+                    <tbody>
+                        <tr><td>รหัสลูกค้า</td><td>สร้างอัตโนมัติ (CUS-XXXXXX)</td></tr>
+                        <tr><td>ชื่อ</td><td>ชื่อ-นามสกุลลูกค้า</td></tr>
+                        <tr><td>เบอร์โทร</td><td>เบอร์โทรศัพท์ (ไม่ซ้ำ)</td></tr>
+                        <tr><td>อีเมล</td><td>อีเมลลูกค้า</td></tr>
+                        <tr><td>LINE ID</td><td>ไอดีไลน์</td></tr>
+                        <tr><td>Facebook</td><td>Facebook ID/URL</td></tr>
+                        <tr><td>ประเภทลูกค้า</td><td>ปลีก / ส่ง / ช่าง / VIP</td></tr>
+                        <tr><td>ที่อยู่</td><td>ที่อยู่จัดส่ง</td></tr>
+                        <tr><td>เลขผู้เสียภาษี</td><td>สำหรับออกใบกำกับภาษี</td></tr>
+                        <tr><td>ชื่อบริษัท</td><td>สำหรับลูกค้านิติบุคคล</td></tr>
+                    </tbody>
+                </table>
+
+                <h4 class="font-semibold mb-2">หน้ารายละเอียดลูกค้า</h4>
+                <p class="text-gray-700">แสดงสถิติของลูกค้า ได้แก่ จำนวนงานซ่อมทั้งหมด, จำนวนรายการขาย, ยอดซื้อสินค้ารวม, มูลค่างานซ่อมรวม</p>
+            </div>
+        </section>
+
+        <!-- ==================== ACCOUNTS RECEIVABLE ==================== -->
+        <section id="accounts-receivable" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-hand-holding-usd text-indigo-500 mr-3"></i>บัญชีลูกหนี้ (Accounts Receivable)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">ติดตามลูกหนี้</h3>
+                <p class="mb-4">ระบบสร้างรายการลูกหนี้อัตโนมัติเมื่อมีการขายเชื่อ (credit) หรือซ่อมที่ยังไม่ชำระเต็ม</p>
+
+                <h4 class="font-semibold mb-2">สรุปข้อมูลหลัก (Dashboard)</h4>
+                <ul class="list-disc list-inside space-y-1 text-gray-700 mb-4">
+                    <li><strong>ยอดค้างชำระทั้งหมด:</strong> ยอดรวมลูกหนี้ที่ยังไม่ชำระ</li>
+                    <li><strong>ยอดเกินกำหนด:</strong> ลูกหนี้ที่เลยวันครบกำหนดชำระ</li>
+                    <li><strong>จำนวนรายการ:</strong> จำนวนลูกหนี้คงค้าง</li>
+                </ul>
+
+                <h4 class="font-semibold mb-2">การบันทึกการชำระ</h4>
+                <div class="space-y-3">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div>เลือกรายการลูกหนี้ที่ต้องการบันทึก</div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div>กรอก: จำนวนเงิน, วิธีชำระ (เงินสด/โอน/QR/บัตร), เลขอ้างอิง, วันที่ชำระ</div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div>ระบบอัพเดตยอดคงเหลืออัตโนมัติ และเปลี่ยนสถานะเป็น "ชำระบางส่วน" หรือ "ชำระครบ"</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== PETTY CASH ==================== -->
+        <section id="petty-cash" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-wallet text-indigo-500 mr-3"></i>เงินสดย่อย (Petty Cash)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">บันทึกรายรับ-รายจ่ายย่อย</h3>
+                <p class="mb-4">ใช้บันทึกรายการเงินสดย่อยประจำวัน เช่น ค่าน้ำมัน, ค่าอาหาร, เงินทอน</p>
+
+                <table class="mb-4">
+                    <thead><tr><th>ฟิลด์</th><th>คำอธิบาย</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>ประเภท</strong></td><td>รับเข้า (In) / จ่ายออก (Out)</td></tr>
+                        <tr><td><strong>หมวดหมู่</strong></td><td>เช่น ค่าเดินทาง, ค่าอาหาร, ค่าวัสดุ, อื่นๆ</td></tr>
+                        <tr><td><strong>จำนวนเงิน</strong></td><td>จำนวนเงินรายการ</td></tr>
+                        <tr><td><strong>รายละเอียด</strong></td><td>คำอธิบายรายการ</td></tr>
+                        <tr><td><strong>เลขใบเสร็จ</strong></td><td>เลขที่ใบเสร็จอ้างอิง (ถ้ามี)</td></tr>
+                        <tr><td><strong>วันที่</strong></td><td>วันที่เกิดรายการ</td></tr>
+                    </tbody>
+                </table>
+
+                <h4 class="font-semibold mb-2">สรุปยอด</h4>
+                <p class="text-gray-700">ระบบแสดงสรุป: รายรับรวม, รายจ่ายรวม, ยอดคงเหลือ สามารถกรองตามช่วงวันที่ได้</p>
+            </div>
+        </section>
+
+        <!-- ==================== DAILY SETTLEMENT ==================== -->
+        <section id="daily-settlement" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-calculator text-indigo-500 mr-3"></i>ปิดยอดประจำวัน (Daily Settlement)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">ขั้นตอนปิดยอด</h3>
+                <p class="mb-4">ใช้สำหรับสรุปยอดเงินสดและรายได้ประจำวันของแต่ละสาขา</p>
+
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div>
+                            <strong>สร้างรอบปิดยอด</strong>
+                            <p class="text-gray-600 text-sm">เลือกวันที่ แล้วกรอกเงินเปิดลิ้นชัก (Opening Cash)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div>
+                            <strong>ระบบคำนวณอัตโนมัติ</strong>
+                            <p class="text-gray-600 text-sm">ดึงข้อมูลจากระบบ: ยอดขายเงินสด, ยอดโอน, ยอด QR, ยอดบัตรเครดิต, ยอดขายเชื่อ, รายได้ซ่อม, เงินสดย่อยรับ/จ่าย</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div>
+                            <strong>กรอกยอดเงินสดจริง</strong>
+                            <p class="text-gray-600 text-sm">นับเงินในลิ้นชักแล้วกรอก "เงินสดจริง" ระบบคำนวณ "ผลต่าง" (เงินเกิน/ขาด) ให้</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">4</div>
+                        <div>
+                            <strong>อนุมัติโดยผู้จัดการ</strong>
+                            <p class="text-gray-600 text-sm">ผู้จัดการตรวจสอบยอดและกดอนุมัติ บันทึกผู้อนุมัติและเวลาอนุมัติ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box mt-4">
+                    <strong><i class="fas fa-calculator mr-1"></i> สูตรคำนวณ:</strong><br>
+                    เงินสดที่ควรมี = เงินเปิดลิ้นชัก + ยอดขายเงินสด + เงินสดย่อยรับเข้า - เงินสดย่อยจ่ายออก<br>
+                    ผลต่าง = เงินสดจริง - เงินสดที่ควรมี (+ = เงินเกิน, - = เงินขาด)
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== BRANCH ORDERS ==================== -->
+        <section id="branch-orders" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-store text-indigo-500 mr-3"></i>สั่งซื้อจากสาขาใหญ่ (Branch Orders)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">สาขาย่อยสั่งสินค้าจากสาขาหลัก</h3>
+                <p class="mb-4">สำหรับธุรกิจที่มีหลายสาขา สาขาย่อยสามารถขอสินค้าจากสาขาใหญ่ (คลังกลาง) ได้</p>
+
+                <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-x-auto">
+                    <div class="flex items-center space-x-2 text-sm min-w-max">
+                        <span class="status-badge bg-yellow-100 text-yellow-800">รอดำเนินการ</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-green-100 text-green-800">อนุมัติ</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-blue-100 text-blue-800">จัดส่งแล้ว</span>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <span class="status-badge bg-purple-100 text-purple-800">รับแล้ว</span>
+                    </div>
+                </div>
+
+                <table>
+                    <thead><tr><th>ขั้นตอน</th><th>ผู้ดำเนินการ</th><th>รายละเอียด</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>สร้างคำสั่งซื้อ</strong></td><td>สาขาย่อย</td><td>เลือกสินค้าจากรายการของสาขาใหญ่ (แสดงสต๊อกคงเหลือ)</td></tr>
+                        <tr><td><strong>อนุมัติ</strong></td><td>สาขาใหญ่</td><td>ตรวจสอบคำขอ, ปรับจำนวนที่อนุมัติได้</td></tr>
+                        <tr><td><strong>จัดส่ง</strong></td><td>สาขาใหญ่</td><td>หักสต๊อกจากสาขาใหญ่, จัดส่งสินค้า</td></tr>
+                        <tr><td><strong>รับสินค้า</strong></td><td>สาขาย่อย</td><td>ยืนยันรับสินค้า, เพิ่มสต๊อกที่สาขาย่อย</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="tip-box mt-4">
+                    <strong><i class="fas fa-lightbulb mr-1"></i> หมายเหตุ:</strong> สาขาใหญ่จะเห็นคำสั่งซื้อจากทุกสาขา ส่วนสาขาย่อยจะเห็นเฉพาะคำสั่งซื้อของตนเอง
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== REPORTS ==================== -->
+        <section id="reports" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-chart-bar text-indigo-500 mr-3"></i>รายงาน (Reports)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">รายงานที่มีในระบบ</h3>
+                <table>
+                    <thead><tr><th>รายงาน</th><th>ข้อมูลที่แสดง</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><strong><i class="fas fa-shopping-cart mr-1"></i> รายงานการขาย</strong></td>
+                            <td>
+                                รายการขายตามช่วงวันที่, สรุปยอดขายแยกตามสถานะ/วิธีชำระ, 
+                                กราฟยอดขายรายวัน, สินค้าขายดี 10 อันดับแรก
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong><i class="fas fa-wrench mr-1"></i> รายงานงานซ่อม</strong></td>
+                            <td>
+                                รายการซ่อมตามช่วงวันที่, สรุปจำนวน/รายได้/ชำระแล้ว/ค้างชำระ,
+                                สถานะงาน, กราฟรายวัน, ช่าง 10 อันดับ, ยี่ห้อเครื่องที่ซ่อมบ่อย
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong><i class="fas fa-boxes mr-1"></i> รายงานสต๊อก</strong></td>
+                            <td>
+                                สต๊อกคงเหลือแยกสาขา, มูลค่ารวม, สินค้าใกล้หมด,
+                                สินค้าหมดสต๊อก, กรองตามหมวดหมู่/สถานะ
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong><i class="fas fa-coins mr-1"></i> รายงานการเงิน</strong></td>
+                            <td>
+                                ยอดปิดประจำวัน, สรุปเงินสดย่อย, กราฟยอดขาย/เงินสด/ผลต่างรายวัน
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong><i class="fas fa-file-invoice mr-1"></i> รายงานจัดซื้อ</strong></td>
+                            <td>
+                                รายการใบสั่งซื้อ, สรุปยอดแยกตามสถานะ, ซัพพลายเออร์ 10 อันดับ
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="tip-box mt-4">
+                    <strong><i class="fas fa-lightbulb mr-1"></i> ตัวกรอง:</strong> ทุกรายงานรองรับการกรองตาม <strong>ช่วงวันที่</strong> (ค่าเริ่มต้น: เดือนปัจจุบัน) และ <strong>สาขา</strong> (Owner/Admin เลือกสาขาได้, พนักงานเห็นเฉพาะสาขาตนเอง)
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== USERS & ROLES ==================== -->
+        <section id="users" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-user-cog text-indigo-500 mr-3"></i>พนักงาน & สิทธิ์ (Users & Permissions)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">จัดการพนักงาน</h3>
+                <p class="mb-4">เฉพาะ Owner, Admin, Manager เท่านั้นที่เข้าถึงเมนูนี้ได้</p>
+                <table class="mb-4">
+                    <thead><tr><th>ฟิลด์</th><th>คำอธิบาย</th></tr></thead>
+                    <tbody>
+                        <tr><td>ชื่อ</td><td>ชื่อ-นามสกุลพนักงาน</td></tr>
+                        <tr><td>อีเมล</td><td>อีเมลสำหรับเข้าสู่ระบบ</td></tr>
+                        <tr><td>รหัสผ่าน</td><td>รหัสผ่านสำหรับเข้าสู่ระบบ</td></tr>
+                        <tr><td>ตำแหน่ง (Role)</td><td>เลือกตำแหน่งงาน</td></tr>
+                        <tr><td>สาขา</td><td>สาขาที่พนักงานสังกัด</td></tr>
+                        <tr><td>รหัสพนักงาน</td><td>รหัสภายในร้าน</td></tr>
+                        <tr><td>เบอร์โทร</td><td>เบอร์โทรศัพท์</td></tr>
+                        <tr><td>สถานะ</td><td>ใช้งาน/ปิดใช้งาน</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">ตำแหน่งที่มีในระบบ</h3>
+                <table>
+                    <thead><tr><th>ตำแหน่ง</th><th>Slug</th><th>หน้าที่หลัก</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>เจ้าของร้าน</strong></td><td>owner</td><td>เข้าถึงทุกฟังก์ชัน ข้อมูลทุกสาขา จัดการตั้งค่าระบบ</td></tr>
+                        <tr><td><strong>ผู้ดูแลระบบ</strong></td><td>admin</td><td>เหมือน Owner แต่ตั้งแต่ระดับบริหาร</td></tr>
+                        <tr><td><strong>ผู้จัดการ</strong></td><td>manager</td><td>จัดการพนักงาน ตั้งค่า อนุมัติเอกสาร</td></tr>
+                        <tr><td><strong>พนักงานขาย</strong></td><td>sales</td><td>ขายสินค้า, POS, จัดการลูกค้า</td></tr>
+                        <tr><td><strong>ช่างซ่อม</strong></td><td>technician</td><td>รับงานซ่อม, เบิกอะไหล่, อัพเดตสถานะงาน</td></tr>
+                        <tr><td><strong>คลังสินค้า</strong></td><td>warehouse</td><td>จัดการสต๊อก, รับสินค้า, ตรวจนับ</td></tr>
+                        <tr><td><strong>บัญชี</strong></td><td>accountant</td><td>เงินสดย่อย, ปิดยอดประจำวัน, รายงานการเงิน</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="info-box mt-4">
+                    <strong><i class="fas fa-shield-alt mr-1"></i> สิทธิ์แบบละเอียด:</strong> แต่ละตำแหน่งมีสิทธิ์การเข้าถึงเป็น JSON array เช่น <code>["repairs.*", "products.view", "sales.*"]</code> — รองรับ wildcard (*) สำหรับให้สิทธิ์ทั้งหมวด
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== BRANCHES ==================== -->
+        <section id="branches" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-building text-indigo-500 mr-3"></i>สาขา (Branches)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <p class="mb-4">จัดการข้อมูลสาขา สำหรับธุรกิจที่มีหลายสาขา</p>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li><strong>สาขาหลัก:</strong> สร้างอัตโนมัติเมื่อลงทะเบียน ทำหน้าที่เป็นคลังกลาง</li>
+                    <li><strong>สาขาย่อย:</strong> เพิ่มได้ตามต้องการ แต่ละสาขามีสต๊อกแยกกัน</li>
+                    <li><strong>ข้อมูลสาขา:</strong> ชื่อ, ที่อยู่, เบอร์โทร, อีเมล, ผู้จัดการ, สถานะ</li>
+                </ul>
+                <div class="warn-box mt-4">
+                    <strong><i class="fas fa-exclamation-triangle mr-1"></i> ข้อจำกัด:</strong> พนักงานที่ไม่ใช่ Owner/Admin จะเห็นข้อมูลเฉพาะสาขาที่ตนเองสังกัดเท่านั้น
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SETTINGS ==================== -->
+        <section id="settings" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-cog text-indigo-500 mr-3"></i>ตั้งค่าระบบ (Settings)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">กลุ่มการตั้งค่า</h3>
+                <table>
+                    <thead><tr><th>กลุ่ม</th><th>การตั้งค่าที่มี</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><strong><i class="fas fa-building mr-1"></i> ข้อมูลบริษัท</strong></td>
+                            <td>ชื่อบริษัท, ที่อยู่, เบอร์โทร, อีเมล, เลขผู้เสียภาษี, โลโก้</td>
+                        </tr>
+                        <tr>
+                            <td><strong><i class="fas fa-sliders-h mr-1"></i> ค่าเริ่มต้น</strong></td>
+                            <td>อัตราภาษี, หน่วยสินค้า, จำนวนวันรับประกันเริ่มต้น</td>
+                        </tr>
+                        <tr>
+                            <td><strong><i class="fas fa-receipt mr-1"></i> ใบเสร็จ/เอกสาร</strong></td>
+                            <td>ข้อความในใบเสร็จ, ขนาดกระดาษ, แสดง/ซ่อนรายการ</td>
+                        </tr>
+                        <tr>
+                            <td><strong><i class="fas fa-plug mr-1"></i> การเชื่อมต่อ</strong></td>
+                            <td>LINE OA, ช่องทางแจ้งเตือน</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="tip-box mt-4">
+                    <strong><i class="fas fa-lightbulb mr-1"></i> หมายเหตุ:</strong> เฉพาะ Owner, Admin, Manager เท่านั้นที่เข้าเมนูตั้งค่าได้
+                </div>
+
+                <h3 class="text-xl font-semibold mt-6 mb-4">ออกแบบใบเสร็จ (Receipt Templates)</h3>
+                <p class="text-gray-700">ปรับแต่งรูปแบบใบเสร็จ/ใบรับซ่อม เพิ่มโลโก้ ข้อความหัว-ท้าย เงื่อนไข ข้อกำหนด</p>
+            </div>
+        </section>
+
+        <!-- ==================== LINE OA ==================== -->
+        <section id="line-oa" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fab fa-line text-green-500 mr-3"></i>LINE OA แชทบอท
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">คุณสมบัติ LINE Chatbot</h3>
+                <p class="mb-4">เชื่อมต่อ LINE Official Account กับระบบ เพื่อให้ลูกค้าสอบถามข้อมูลผ่าน LINE ได้โดยตรง</p>
+
+                <table class="mb-4">
+                    <thead><tr><th>คำสั่ง</th><th>ตัวอย่าง</th><th>ผลลัพธ์</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>เช็คสต๊อก</strong></td>
+                            <td>"สต๊อก iPhone 15"</td>
+                            <td>แสดงชื่อสินค้า, SKU, จำนวนคงเหลือ, สถานะ ✅/❌, สต๊อกแยกสาขา</td>
+                        </tr>
+                        <tr>
+                            <td><strong>เช็คราคา</strong></td>
+                            <td>"ราคา iPhone 15"</td>
+                            <td>แสดงราคาปลีก, ราคาส่ง (ตามการตั้งค่า)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ติดตามงานซ่อม</strong></td>
+                            <td>"ติดตาม RPR-2025-0001"</td>
+                            <td>แสดงเลขงาน, อุปกรณ์, อาการ, สถานะปัจจุบัน, สาขา</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">วิธีตั้งค่า LINE OA</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">1</div>
+                        <div>
+                            <strong>สร้าง LINE Official Account</strong>
+                            <p class="text-gray-600 text-sm">สมัครที่ <a href="https://manager.line.biz" class="text-indigo-600 underline" target="_blank">manager.line.biz</a></p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">2</div>
+                        <div>
+                            <strong>สร้าง Messaging API Channel</strong>
+                            <p class="text-gray-600 text-sm">ที่ <a href="https://developers.line.biz" class="text-indigo-600 underline" target="_blank">developers.line.biz</a> สร้าง Provider → Channel (Messaging API)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">3</div>
+                        <div>
+                            <strong>คัดลอกข้อมูล Channel</strong>
+                            <p class="text-gray-600 text-sm">คัดลอก Channel ID, Channel Secret, และสร้าง Long-lived Access Token</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">4</div>
+                        <div>
+                            <strong>กรอกข้อมูลในระบบ</strong>
+                            <p class="text-gray-600 text-sm">ไปที่ ตั้งค่า → LINE OA แชทบอท กรอก Channel ID, Secret, Access Token</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">5</div>
+                        <div>
+                            <strong>ตั้ง Webhook URL</strong>
+                            <p class="text-gray-600 text-sm">คัดลอก Webhook URL จากระบบแล้ววางใน LINE Developers Console → Messaging API → Webhook URL</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="step-number mr-4">6</div>
+                        <div>
+                            <strong>ทดสอบการเชื่อมต่อ</strong>
+                            <p class="text-gray-600 text-sm">กดปุ่ม "ทดสอบการเชื่อมต่อ" ในหน้าตั้งค่า → แสดงชื่อบอทและรูปภาพถ้าเชื่อมต่อสำเร็จ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="font-semibold mt-6 mb-2">ตัวเลือกเพิ่มเติม</h4>
+                <table>
+                    <thead><tr><th>ตัวเลือก</th><th>คำอธิบาย</th></tr></thead>
+                    <tbody>
+                        <tr><td>เปิด/ปิดแชทบอท</td><td>เปิด-ปิดการทำงานของบอท</td></tr>
+                        <tr><td>ข้อความต้อนรับ</td><td>ข้อความที่ส่งเมื่อลูกค้าเพิ่มเพื่อน</td></tr>
+                        <tr><td>แสดงราคา</td><td>แสดงราคาปลีก/ส่งในการตอบกลับ</td></tr>
+                        <tr><td>แสดงสต๊อกแยกสาขา</td><td>แสดงจำนวนสต๊อกแยกตามสาขา</td></tr>
+                        <tr><td>ค้นหาอัตโนมัติ</td><td>ค้นหาสินค้าอัตโนมัติโดยไม่ต้องพิมพ์ "สต๊อก" นำหน้า</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ==================== AUDIT LOGS ==================== -->
+        <section id="audit-logs" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-history text-indigo-500 mr-3"></i>Audit Log (บันทึกกิจกรรม)
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6">
+                <p class="mb-4">ระบบบันทึกกิจกรรมสำคัญทั้งหมดที่เกิดขึ้นในระบบ เพื่อการตรวจสอบย้อนหลัง</p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li>ใครทำอะไร เมื่อไหร่</li>
+                    <li>ข้อมูลก่อนและหลังการเปลี่ยนแปลง</li>
+                    <li>ค้นหาและกรองตามผู้ใช้, ประเภทกิจกรรม, ช่วงเวลา</li>
+                </ul>
+                <div class="warn-box mt-4">
+                    <strong><i class="fas fa-lock mr-1"></i> การเข้าถึง:</strong> เฉพาะ Owner, Admin, Manager เท่านั้นที่เข้าดู Audit Log ได้
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== ROLES & PERMISSIONS TABLE ==================== -->
+        <section id="roles-permissions" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-shield-alt text-indigo-500 mr-3"></i>ตารางสิทธิ์การเข้าถึง
+            </h2>
+            <div class="section-card bg-white rounded-lg shadow p-6 overflow-x-auto">
+                <table class="text-sm">
+                    <thead>
+                        <tr>
+                            <th>ฟังก์ชัน</th>
+                            <th class="text-center">Owner</th>
+                            <th class="text-center">Admin</th>
+                            <th class="text-center">Manager</th>
+                            <th class="text-center">Sales</th>
+                            <th class="text-center">Technician</th>
+                            <th class="text-center">Warehouse</th>
+                            <th class="text-center">Accountant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>แดชบอร์ด (ทุกสาขา)</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-gray-400">—</td>
+                            <td class="text-center text-gray-400">—</td>
+                            <td class="text-center text-gray-400">—</td>
+                            <td class="text-center text-gray-400">—</td>
+                            <td class="text-center text-gray-400">—</td>
+                        </tr>
+                        <tr>
+                            <td>แดชบอร์ด (สาขาตนเอง)</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                        </tr>
+                        <tr>
+                            <td>งานซ่อม / POS / สินค้า / รายงาน</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                        </tr>
+                        <tr>
+                            <td>จัดการพนักงาน / สาขา</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-red-400">❌</td>
+                            <td class="text-center text-red-400">❌</td>
+                            <td class="text-center text-red-400">❌</td>
+                            <td class="text-center text-red-400">❌</td>
+                        </tr>
+                        <tr>
+                            <td>ตั้งค่าระบบ / ใบเสร็จ / LINE OA</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-red-400">❌</td>
+                            <td class="text-center text-red-400">❌</td>
+                            <td class="text-center text-red-400">❌</td>
+                            <td class="text-center text-red-400">❌</td>
+                        </tr>
+                        <tr>
+                            <td>จัดการสิทธิ์ / Audit Log</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-green-600">✅</td>
+                            <td class="text-center text-red-400">❌</td>
+                            <td class="text-center text-red-400">❌</td>
+                            <td class="text-center text-red-400">❌</td>
+                            <td class="text-center text-red-400">❌</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="text-sm text-gray-500 mt-3">* สิทธิ์ยังสามารถปรับแต่งเพิ่มเติมได้ในระดับ JSON permissions ของแต่ละ Role</p>
+            </div>
+        </section>
+
+        <!-- ==================== FAQ ==================== -->
+        <section id="faq" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-question-circle text-indigo-500 mr-3"></i>คำถามที่พบบ่อย (FAQ)
+            </h2>
+
+            <div class="space-y-4">
+                <div class="section-card bg-white rounded-lg shadow p-6">
+                    <h4 class="font-semibold text-lg mb-2">ถ: ลืมรหัสผ่านทำอย่างไร?</h4>
+                    <p class="text-gray-700">ตอบ: กดลิงก์ "ลืมรหัสผ่าน" ในหน้า Login กรอกอีเมลที่ลงทะเบียน ระบบจะส่งลิงก์รีเซ็ตรหัสผ่านไปที่อีเมล</p>
+                </div>
+
+                <div class="section-card bg-white rounded-lg shadow p-6">
+                    <h4 class="font-semibold text-lg mb-2">ถ: ทำไมไม่เห็นเมนูตั้งค่า?</h4>
+                    <p class="text-gray-700">ตอบ: เมนูตั้งค่าและจัดการ (Settings, Management) จะแสดงเฉพาะผู้ใช้ที่มีตำแหน่ง Owner, Admin หรือ Manager เท่านั้น หากคุณเป็นพนักงานขายหรือช่าง จะไม่เห็นเมนูเหล่านี้</p>
+                </div>
+
+                <div class="section-card bg-white rounded-lg shadow p-6">
+                    <h4 class="font-semibold text-lg mb-2">ถ: สต๊อกไม่ตรงทำอย่างไร?</h4>
+                    <p class="text-gray-700">ตอบ: ใช้ฟังก์ชัน <strong>"ตรวจนับสต๊อก"</strong> เพื่อนับจำนวนจริงแล้วให้ผู้จัดการอนุมัติ ระบบจะปรับยอดสต๊อกให้ตรงกับจำนวนจริง หรือปรับด้วยมือในหน้ารายละเอียดสินค้า</p>
+                </div>
+
+                <div class="section-card bg-white rounded-lg shadow p-6">
+                    <h4 class="font-semibold text-lg mb-2">ถ: ยกเลิกบิลขายแล้วสต๊อกจะคืนไหม?</h4>
+                    <p class="text-gray-700">ตอบ: ใช่ เมื่อยกเลิกรายการขาย (Void) ระบบจะคืนสต๊อกอัตโนมัติ</p>
+                </div>
+
+                <div class="section-card bg-white rounded-lg shadow p-6">
+                    <h4 class="font-semibold text-lg mb-2">ถ: เพิ่มสินค้าจำนวนมากทำอย่างไร?</h4>
+                    <p class="text-gray-700">ตอบ: ใช้ฟังก์ชัน <strong>"นำเข้า CSV"</strong> ดาวน์โหลดเทมเพลตจากระบบ กรอกข้อมูลลง Excel แล้วอัพโหลด ระบบจะสร้างสินค้าและหมวดหมู่ให้อัตโนมัติ</p>
+                </div>
+
+                <div class="section-card bg-white rounded-lg shadow p-6">
+                    <h4 class="font-semibold text-lg mb-2">ถ: LINE Bot ไม่ตอบข้อความทำอย่างไร?</h4>
+                    <p class="text-gray-700">ตอบ: ตรวจสอบ: (1) เปิดใช้งาน LINE Chatbot ในหน้าตั้งค่าแล้วหรือยัง (2) Channel Secret และ Access Token ถูกต้อง (3) Webhook URL ตั้งค่าถูกต้องใน LINE Developers Console (4) กดปุ่ม "ทดสอบการเชื่อมต่อ" ว่าสำเร็จหรือไม่</p>
+                </div>
+
+                <div class="section-card bg-white rounded-lg shadow p-6">
+                    <h4 class="font-semibold text-lg mb-2">ถ: ต้องการเพิ่มสาขาใหม่ทำอย่างไร?</h4>
+                    <p class="text-gray-700">ตอบ: ไปที่ จัดการ → สาขา → กดเพิ่มสาขา กรอกข้อมูลสาขาแล้วบันทึก จากนั้นเพิ่มพนักงานและมอบหมายไปยังสาขาใหม่ แต่ละสาขาจะมีสต๊อกแยกกัน</p>
+                </div>
+
+                <div class="section-card bg-white rounded-lg shadow p-6">
+                    <h4 class="font-semibold text-lg mb-2">ถ: ลูกค้าเคลมงานซ่อมได้ไหม?</h4>
+                    <p class="text-gray-700">ตอบ: ได้ หากงานซ่อมเดิมยังอยู่ในช่วงรับประกัน สามารถกดปุ่ม "สร้างงานเคลม" จากหน้ารายละเอียดงานซ่อมเดิม ระบบจะสร้างงานซ่อมใหม่และลิงก์กับงานเดิมอัตโนมัติ</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== FOOTER ==================== -->
+        <footer class="border-t py-8 text-center text-gray-500 text-sm">
+            <p><strong>All In Mobile</strong> — ระบบจัดการร้านมือถือครบวงจร</p>
+            <p class="mt-1">คู่มือเวอร์ชัน 1.0 | จัดทำเมื่อ กรกฎาคม 2568</p>
+            <p class="mt-1">หากพบปัญหาหรือต้องการความช่วยเหลือ กรุณาติดต่อผู้ดูแลระบบ</p>
+        </footer>
+    </div>
+</div>
+
+<script>
+// Highlight active nav link on scroll
+document.addEventListener('DOMContentLoaded', function() {
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    function activateNav() {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - 100;
+            if (window.scrollY >= sectionTop) {
+                current = section.getAttribute('id');
+            }
+        });
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + current) {
+                link.classList.add('active');
+            }
+        });
+    }
+    
+    window.addEventListener('scroll', activateNav);
+    activateNav();
+});
+</script>
+
+</body>
+</html>
