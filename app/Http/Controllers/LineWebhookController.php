@@ -125,7 +125,14 @@ class LineWebhookController extends Controller
         $lines[] = str_repeat('─', 20);
 
         foreach ($products as $product) {
-            $qty = $product->quantity;
+            // Calculate total from branch stocks (more accurate than product.quantity)
+            $branchStocks = BranchStock::where('stockable_id', $product->id)
+                ->where('stockable_type', 'App\\Models\\Product')
+                ->with('branch')
+                ->get();
+
+            $totalQty = $branchStocks->sum('quantity');
+            $qty = $totalQty > 0 ? $totalQty : $product->quantity;
             $status = $qty > 0 ? "✅ มีสินค้า" : "❌ สินค้าหมด";
             $lines[] = "\n📌 {$product->name}";
             if ($product->sku) {
@@ -135,14 +142,9 @@ class LineWebhookController extends Controller
             $lines[] = "   สถานะ: {$status}";
 
             // Show per-branch stock
-            $branchStocks = BranchStock::where('stockable_id', $product->id)
-                ->where('stockable_type', 'App\\Models\\Product')
-                ->where('quantity', '>', 0)
-                ->with('branch')
-                ->get();
-
-            if ($branchStocks->isNotEmpty()) {
-                foreach ($branchStocks as $bs) {
+            $activeBranchStocks = $branchStocks->where('quantity', '>', 0);
+            if ($activeBranchStocks->isNotEmpty()) {
+                foreach ($activeBranchStocks as $bs) {
                     $branchName = $bs->branch->name ?? 'ไม่ระบุ';
                     $lines[] = "   📍 {$branchName}: {$bs->quantity} {$product->unit}";
                 }
@@ -182,7 +184,10 @@ class LineWebhookController extends Controller
             if ($product->wholesale_price > 0 && $product->wholesale_price != $product->retail_price) {
                 $lines[] = "   ราคาส่ง: ฿" . number_format($product->wholesale_price, 0);
             }
-            $qty = $product->quantity;
+            $totalQty = BranchStock::where('stockable_id', $product->id)
+                ->where('stockable_type', 'App\\Models\\Product')
+                ->sum('quantity');
+            $qty = $totalQty > 0 ? $totalQty : $product->quantity;
             $lines[] = "   สถานะ: " . ($qty > 0 ? "✅ มีสินค้า ({$qty})" : "❌ สินค้าหมด");
         }
 

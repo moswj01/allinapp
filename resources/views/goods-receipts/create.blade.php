@@ -108,37 +108,37 @@
 @php
 $grSelectedPoId = $selectedPo->id ?? '';
 $grPoItems = $selectedPo
-    ? $selectedPo->items->map(fn($i) => [
-        'id' => $i->id,
-        'item_name' => $i->item_name,
-        'quantity' => $i->quantity,
-        'received_quantity' => $i->received_quantity,
-        'qty_to_receive' => $i->quantity - $i->received_quantity,
-    ])
-    : [];
+? $selectedPo->items->map(fn($i) => [
+'id' => $i->id,
+'item_name' => $i->item_name,
+'quantity' => $i->quantity,
+'received_quantity' => $i->received_quantity,
+'qty_to_receive' => $i->quantity - $i->received_quantity,
+])
+: [];
 $grAllPos = $purchaseOrders->mapWithKeys(fn($po) => [
-    $po->id => $po->items->map(fn($i) => [
-        'id' => $i->id,
-        'item_name' => $i->item_name,
-        'quantity' => $i->quantity,
-        'received_quantity' => $i->received_quantity,
-        'qty_to_receive' => $i->quantity - $i->received_quantity,
-    ]),
+$po->id => $po->items->map(fn($i) => [
+'id' => $i->id,
+'item_name' => $i->item_name,
+'quantity' => $i->quantity,
+'received_quantity' => $i->received_quantity,
+'qty_to_receive' => $i->quantity - $i->received_quantity,
+]),
 ]);
 @endphp
 
 @push('scripts')
 <script>
-function grForm() {
-    return {
-        selectedPo: '{{ $grSelectedPoId }}',
-        poItems: @json($grPoItems),
-        allPos: @json($grAllPos),
-        loadPoItems() {
-            this.poItems = this.allPos[this.selectedPo] || [];
+    function grForm() {
+        return {
+            selectedPo: '{{ $grSelectedPoId }}',
+            poItems: @json($grPoItems),
+            allPos: @json($grAllPos),
+            loadPoItems() {
+                this.poItems = this.allPos[this.selectedPo] || [];
+            }
         }
     }
-}
 </script>
 @endpush
 @endsection
