@@ -18,6 +18,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 trait BelongsToTenant
 {
+    /**
+     * Initialize the trait: add tenant_id to fillable automatically
+     */
+    public function initializeBelongsToTenant(): void
+    {
+        if (!in_array('tenant_id', $this->fillable)) {
+            $this->fillable[] = 'tenant_id';
+        }
+    }
+
     public static function bootBelongsToTenant(): void
     {
         // Global scope: filter by current tenant
