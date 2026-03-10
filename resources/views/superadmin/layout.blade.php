@@ -132,6 +132,87 @@
         </div>
     </div>
     @stack('scripts')
+
+    <script>
+    // Universal Table Sorting
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('table').forEach(function(table) {
+            var thead = table.querySelector('thead');
+            var tbody = table.querySelector('tbody');
+            if (!thead || !tbody) return;
+
+            var headers = thead.querySelectorAll('th');
+            headers.forEach(function(th, colIdx) {
+                var text = th.textContent.trim();
+                if (!text || text === 'จัดการ' || text === '#' || th.querySelector('input[type=checkbox]')) return;
+
+                th.style.cursor = 'pointer';
+                th.style.userSelect = 'none';
+                th.style.position = 'relative';
+                th.style.paddingRight = '24px';
+
+                var indicator = document.createElement('span');
+                indicator.className = 'sort-indicator';
+                indicator.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;color:#9ca3af;transition:color 0.15s;';
+                indicator.innerHTML = '&#x25B2;&#x25BC;';
+                th.appendChild(indicator);
+
+                th.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var rows = Array.from(tbody.querySelectorAll('tr'));
+                    if (rows.length < 2) return;
+
+                    var asc = th.getAttribute('data-sort') !== 'asc';
+
+                    headers.forEach(function(h) {
+                        h.removeAttribute('data-sort');
+                        var si = h.querySelector('.sort-indicator');
+                        if (si) { si.innerHTML = '&#x25B2;&#x25BC;'; si.style.color = '#9ca3af'; }
+                    });
+
+                    th.setAttribute('data-sort', asc ? 'asc' : 'desc');
+                    indicator.innerHTML = asc ? '&#x25B2;' : '&#x25BC;';
+                    indicator.style.color = '#6366f1';
+
+                    rows.sort(function(a, b) {
+                        var cellA = a.children[colIdx];
+                        var cellB = b.children[colIdx];
+                        if (!cellA || !cellB) return 0;
+
+                        var valA = (cellA.getAttribute('data-sort-value') || cellA.textContent).trim();
+                        var valB = (cellB.getAttribute('data-sort-value') || cellB.textContent).trim();
+
+                        var numA = parseFloat(valA.replace(/[^\d.\-]/g, ''));
+                        var numB = parseFloat(valB.replace(/[^\d.\-]/g, ''));
+                        if (!isNaN(numA) && !isNaN(numB) && valA !== '' && valB !== '') {
+                            return asc ? numA - numB : numB - numA;
+                        }
+
+                        var dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/;
+                        var matchA = valA.match(dateRegex);
+                        var matchB = valB.match(dateRegex);
+                        if (matchA && matchB) {
+                            var dA = new Date(matchA[3], matchA[2]-1, matchA[1]);
+                            var dB = new Date(matchB[3], matchB[2]-1, matchB[1]);
+                            return asc ? dA - dB : dB - dA;
+                        }
+
+                        return asc ? valA.localeCompare(valB, 'th') : valB.localeCompare(valA, 'th');
+                    });
+
+                    rows.forEach(function(row) { tbody.appendChild(row); });
+                });
+
+                th.addEventListener('mouseenter', function() {
+                    if (!th.getAttribute('data-sort')) indicator.style.color = '#6b7280';
+                });
+                th.addEventListener('mouseleave', function() {
+                    if (!th.getAttribute('data-sort')) indicator.style.color = '#9ca3af';
+                });
+            });
+        });
+    });
+    </script>
 </body>
 
 </html>
