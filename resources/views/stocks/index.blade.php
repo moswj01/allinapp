@@ -52,10 +52,11 @@
                     <i class="fas fa-store mr-2"></i>สาขา: <span x-text="userBranchName"></span>
                 </div>
             </template>
-            <select x-model="typeFilter" @change="fetchData()" class="px-4 py-2 border border-gray-300 rounded-lg">
-                <option value="">ทุกประเภท</option>
-                <option value="product">สินค้า</option>
-            </select>
+            <div class="relative">
+                <input type="text" x-model="searchQuery" @input.debounce.300ms="fetchData()" placeholder="ค้นหาสินค้า..."
+                    class="px-4 py-2 border border-gray-300 rounded-lg pl-9">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            </div>
         </div>
     </div>
 
@@ -66,11 +67,10 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สาขา</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ประเภท</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รายการ</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">จำนวน</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ขั้นต่ำ</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สินค้า</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">จำนวน</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">ขั้นต่ำ</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">สถานะ</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -78,16 +78,10 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 text-sm text-gray-500" x-text="index + 1"></td>
                         <td class="px-6 py-4 text-sm" x-text="stock.branch?.name || '-'"></td>
-                        <td class="px-6 py-4">
-                            <span :class="'bg-blue-100 text-blue-800'"
-                                class="px-2 py-1 text-xs font-semibold rounded">
-                                <span>สินค้า</span>
-                            </span>
-                        </td>
                         <td class="px-6 py-4 text-sm font-medium" x-text="stock.stockable?.name || '-'"></td>
-                        <td class="px-6 py-4 text-sm font-bold" x-text="stock.quantity"></td>
-                        <td class="px-6 py-4 text-sm text-gray-500" x-text="stock.min_quantity || 0"></td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 text-sm font-bold text-right" x-text="stock.quantity"></td>
+                        <td class="px-6 py-4 text-sm text-gray-500 text-right" x-text="stock.min_quantity || 0"></td>
+                        <td class="px-6 py-4 text-center">
                             <span :class="stock.quantity <= (stock.min_quantity || 0) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'"
                                 class="px-2 py-1 text-xs font-semibold rounded">
                                 <span x-text="stock.quantity <= (stock.min_quantity || 0) ? 'ต่ำ' : 'ปกติ'"></span>
@@ -96,7 +90,7 @@
                     </tr>
                 </template>
                 <tr x-show="items.length === 0">
-                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">ไม่พบข้อมูลสต็อก</td>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">ไม่พบข้อมูลสต็อก</td>
                 </tr>
             </tbody>
         </table>
@@ -166,16 +160,9 @@
                             </div>
                         </template>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">ประเภท *</label>
-                            <select x-model="form.item_type" @change="fetchItems()" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                                <option value="">เลือกประเภท</option>
-                                <option value="product">สินค้า</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">รายการ *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">สินค้า *</label>
                             <select x-model="form.item_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                                <option value="">เลือกรายการ</option>
+                                <option value="">เลือกสินค้า</option>
                                 <template x-for="item in availableItems" :key="item.id">
                                     <option :value="item.id" x-text="item.name"></option>
                                 </template>
@@ -216,7 +203,7 @@
             availableItems: [],
             tab: 'stocks',
             branchFilter: '',
-            typeFilter: '',
+            searchQuery: '',
             showModal: false,
             modalType: 'in',
             isAdmin: false,
@@ -244,7 +231,7 @@
 
                 let url = '/api/stocks?';
                 if (this.branchFilter) url += `branch_id=${this.branchFilter}&`;
-                if (this.typeFilter) url += `type=${this.typeFilter}`;
+                if (this.searchQuery) url += `q=${encodeURIComponent(this.searchQuery)}&`;
 
                 const response = await fetch(url, {
                     headers: apiHeaders()
@@ -272,26 +259,24 @@
             },
 
             async fetchItems() {
-                if (this.form.item_type === 'product') {
-                    const response = await fetch('/api/products', {
-                        headers: apiHeaders()
-                    });
-                    const payload = await response.json();
-                    const list = payload?.data?.data ?? payload?.data ?? payload;
-                    this.availableItems = Array.isArray(list) ? list : (list?.data ?? []);
-                } else {
-                    this.availableItems = [];
-                }
+                const response = await fetch('/api/products', {
+                    headers: apiHeaders()
+                });
+                const payload = await response.json();
+                const list = payload?.data?.data ?? payload?.data ?? payload;
+                this.availableItems = Array.isArray(list) ? list : (list?.data ?? []);
             },
 
             openStockIn() {
                 this.modalType = 'in';
                 this.resetForm();
+                this.fetchItems();
                 this.showModal = true;
             },
             openStockOut() {
                 this.modalType = 'out';
                 this.resetForm();
+                this.fetchItems();
                 this.showModal = true;
             },
             closeModal() {
@@ -301,7 +286,7 @@
             resetForm() {
                 this.form = {
                     branch_id: this.isAdmin ? '' : this.userBranchId,
-                    item_type: '',
+                    item_type: 'product',
                     item_id: '',
                     quantity: 1,
                     reference_number: '',
@@ -313,14 +298,11 @@
             async saveStock() {
                 const payload = {
                     branch_id: this.form.branch_id,
+                    product_id: this.form.item_id,
                     quantity: this.form.quantity,
                     reference_number: this.form.reference_number,
                     notes: this.form.notes
                 };
-
-                if (this.form.item_type === 'product') {
-                    payload.product_id = this.form.item_id;
-                }
 
                 const url = this.modalType === 'in' ? '/api/stock/in' : '/api/stock/out';
                 const response = await fetch(url, {
