@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คู่มือการทดสอบระบบ — All In Mobile</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Sarabun', sans-serif; }
+        html { scroll-behavior: smooth; }
+        .sidebar { position: fixed; top: 0; left: 0; width: 300px; height: 100vh; overflow-y: auto; z-index: 50; transition: transform 0.3s; }
+        .content { margin-left: 300px; }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+        .nav-link { transition: all 0.15s; display: block; padding: 6px 16px; font-size: 13px; color: #4a5568; text-decoration: none; }
+        .nav-link:hover { background: #eef2ff; color: #4f46e5; }
+        .nav-link.active { background: #eef2ff; color: #4f46e5; border-right: 3px solid #4f46e5; font-weight: 600; }
+        .nav-group { padding: 8px 16px 4px; font-size: 11px; color: #a0aec0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .tc-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 16px; overflow: hidden; transition: box-shadow 0.2s; }
+        .tc-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .tc-header { padding: 12px 20px; font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .tc-body { padding: 0 20px 16px; }
+        .tc-row { display: grid; grid-template-columns: 140px 1fr; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+        .tc-row:last-child { border-bottom: none; }
+        .tc-label { font-weight: 600; color: #6b7280; }
+        .tc-value { color: #374151; line-height: 1.6; }
+        .tc-value code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: 13px; color: #dc2626; }
+        .workflow-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 13px; line-height: 1.8; white-space: pre-wrap; color: #475569; margin: 12px 0; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+        .badge-pass { background: #d1fae5; color: #065f46; }
+        .badge-fail { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-purple { background: #ede9fe; color: #5b21b6; }
+        .section-anchor { scroll-margin-top: 20px; }
+        .stock-impact { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
+        .stock-add { background: #d1fae5; color: #065f46; }
+        .stock-deduct { background: #fee2e2; color: #991b1b; }
+        .stock-adjust { background: #fef3c7; color: #92400e; }
+        table.data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        table.data-table th { background: #f9fafb; padding: 10px 14px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; }
+        table.data-table td { padding: 10px 14px; border: 1px solid #e5e7eb; color: #4b5563; }
+        table.data-table tr:hover td { background: #f9fafb; }
+        .checkbox-result { width: 20px; height: 20px; border: 2px solid #d1d5db; border-radius: 4px; display: inline-block; vertical-align: middle; cursor: pointer; margin-right: 4px; }
+        .checkbox-result.checked { background: #10b981; border-color: #10b981; position: relative; }
+        .checkbox-result.checked::after { content: '✓'; color: white; position: absolute; top: -2px; left: 3px; font-size: 14px; font-weight: bold; }
+        .progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #059669); border-radius: 4px; transition: width 0.5s; }
+        .hamburger { display: none; position: fixed; top: 12px; left: 12px; z-index: 60; background: #4f46e5; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 18px; }
+        @media print {
+            .sidebar, .hamburger, .no-print { display: none !important; }
+            .content { margin-left: 0 !important; }
+            .tc-card { break-inside: avoid; }
+        }
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
+            .content { margin-left: 0; }
+            .hamburger { display: block; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<!-- Hamburger -->
+<button class="hamburger no-print" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+
+<!-- Sidebar -->
+<nav class="sidebar bg-white shadow-lg no-print" id="sidebar">
+    <div class="p-4 border-b" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;">
+        <h2 class="text-lg font-bold"><i class="fas fa-vial mr-2"></i>คู่มือทดสอบระบบ</h2>
+        <p class="text-sm mt-1 opacity-80">All In Mobile v1.0</p>
+        <div class="mt-3 flex items-center gap-2">
+            <div class="progress-bar flex-1"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            <span class="text-xs font-bold" id="progressText">0%</span>
+        </div>
+    </div>
+    <div class="py-2">
+        <a href="#info" class="nav-link"><i class="fas fa-info-circle w-5 mr-2 text-indigo-400"></i>ข้อมูลทั่วไป & บัญชี</a>
+
+        <div class="nav-group">สมัคร & เข้าสู่ระบบ</div>
+        <a href="#registration" class="nav-link"><i class="fas fa-user-plus w-5 mr-2 text-green-400"></i>สมัครใช้งาน</a>
+        <a href="#auth" class="nav-link"><i class="fas fa-sign-in-alt w-5 mr-2 text-blue-400"></i>เข้าสู่ / ออกจากระบบ</a>
+
+        <div class="nav-group">หน้าหลัก</div>
+        <a href="#dashboard" class="nav-link"><i class="fas fa-tachometer-alt w-5 mr-2 text-purple-400"></i>แดชบอร์ด</a>
+
+        <div class="nav-group">งานซ่อม</div>
+        <a href="#repairs" class="nav-link"><i class="fas fa-tools w-5 mr-2 text-orange-400"></i>งานซ่อม (11 TC)</a>
+
+        <div class="nav-group">ขาย & ลูกค้า</div>
+        <a href="#sales" class="nav-link"><i class="fas fa-cash-register w-5 mr-2 text-green-500"></i>การขาย / POS (5 TC)</a>
+        <a href="#quotations" class="nav-link"><i class="fas fa-file-alt w-5 mr-2 text-cyan-400"></i>ใบเสนอราคา (4 TC)</a>
+        <a href="#customers" class="nav-link"><i class="fas fa-users w-5 mr-2 text-pink-400"></i>ลูกค้า</a>
+        <a href="#ar" class="nav-link"><i class="fas fa-hand-holding-usd w-5 mr-2 text-yellow-500"></i>บัญชีลูกหนี้ (3 TC)</a>
+
+        <div class="nav-group">สินค้า & คลัง</div>
+        <a href="#products" class="nav-link"><i class="fas fa-box w-5 mr-2 text-indigo-400"></i>สินค้า (6 TC)</a>
+        <a href="#categories" class="nav-link"><i class="fas fa-tags w-5 mr-2 text-teal-400"></i>หมวดหมู่</a>
+        <a href="#suppliers" class="nav-link"><i class="fas fa-truck w-5 mr-2 text-gray-500"></i>ซัพพลายเออร์</a>
+
+        <div class="nav-group">จัดซื้อ & สต๊อก</div>
+        <a href="#po" class="nav-link"><i class="fas fa-file-invoice w-5 mr-2 text-blue-500"></i>ใบสั่งซื้อ (4 TC)</a>
+        <a href="#gr" class="nav-link"><i class="fas fa-clipboard-check w-5 mr-2 text-green-500"></i>รับสินค้า (2 TC)</a>
+        <a href="#stocktake" class="nav-link"><i class="fas fa-clipboard-list w-5 mr-2 text-amber-500"></i>ตรวจนับสต๊อก (2 TC)</a>
+        <a href="#transfer" class="nav-link"><i class="fas fa-exchange-alt w-5 mr-2 text-purple-500"></i>โอนสต๊อก (2 TC)</a>
+        <a href="#branch-orders" class="nav-link"><i class="fas fa-store w-5 mr-2 text-red-400"></i>สั่งจากสาขาใหญ่ (2 TC)</a>
+
+        <div class="nav-group">การเงิน</div>
+        <a href="#finance" class="nav-link"><i class="fas fa-wallet w-5 mr-2 text-emerald-500"></i>เงินสดย่อย & ปิดยอด (3 TC)</a>
+
+        <div class="nav-group">ระบบอื่นๆ</div>
+        <a href="#tenant-orders" class="nav-link"><i class="fas fa-shopping-cart w-5 mr-2 text-violet-400"></i>สั่งจากร้านกลาง (2 TC)</a>
+        <a href="#reports" class="nav-link"><i class="fas fa-chart-bar w-5 mr-2 text-cyan-500"></i>รายงาน (5 TC)</a>
+        <a href="#users" class="nav-link"><i class="fas fa-user-cog w-5 mr-2 text-gray-600"></i>ผู้ใช้ (2 TC)</a>
+        <a href="#branches" class="nav-link"><i class="fas fa-building w-5 mr-2 text-blue-400"></i>สาขา</a>
+        <a href="#roles" class="nav-link"><i class="fas fa-shield-alt w-5 mr-2 text-indigo-500"></i>บทบาท & สิทธิ์ (2 TC)</a>
+        <a href="#settings" class="nav-link"><i class="fas fa-cog w-5 mr-2 text-gray-500"></i>ตั้งค่า (3 TC)</a>
+        <a href="#notifications" class="nav-link"><i class="fas fa-bell w-5 mr-2 text-yellow-400"></i>แจ้งเตือน</a>
+        <a href="#audit" class="nav-link"><i class="fas fa-history w-5 mr-2 text-gray-400"></i>Audit Log</a>
+
+        <div class="nav-group">Super Admin</div>
+        <a href="#superadmin" class="nav-link"><i class="fas fa-crown w-5 mr-2 text-yellow-500"></i>Super Admin (4 TC)</a>
+        <a href="#billing" class="nav-link"><i class="fas fa-credit-card w-5 mr-2 text-green-500"></i>Billing (2 TC)</a>
+
+        <div class="nav-group">ทดสอบระบบ</div>
+        <a href="#multi-tenancy" class="nav-link"><i class="fas fa-layer-group w-5 mr-2 text-purple-500"></i>Multi-Tenancy (4 TC)</a>
+        <a href="#permissions" class="nav-link"><i class="fas fa-lock w-5 mr-2 text-red-500"></i>Permission & Feature (2 TC)</a>
+        <a href="#appendix" class="nav-link"><i class="fas fa-paperclip w-5 mr-2 text-gray-400"></i>ภาคผนวก</a>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="content">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white p-8 md:p-12">
+        <div class="max-w-5xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2"><i class="fas fa-vial mr-3"></i>คู่มือการทดสอบระบบ</h1>
+            <p class="text-xl opacity-90 mb-1">All In Mobile — Stock & Repair Management</p>
+            <div class="flex flex-wrap gap-4 mt-4 text-sm">
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full"><i class="fas fa-calendar mr-1"></i>28 ก.พ. 2026</span>
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full"><i class="fas fa-code-branch mr-1"></i>v1.0</span>
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full"><i class="fas fa-globe mr-1"></i>app.allinservicemac.com</span>
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full"><i class="fas fa-list-check mr-1"></i><span id="totalTc">60+</span> Test Cases</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto p-4 md:p-8">
+
+    <!-- ========== 1. ข้อมูลทั่วไป ========== -->
+    <section id="info" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center"><i class="fas fa-info-circle"></i></span>
+            1. ข้อมูลทั่วไปและบัญชีทดสอบ
+        </h2>
+
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">1.1 บัญชีผู้ใช้</h3>
+        <div class="overflow-x-auto mb-6">
+            <table class="data-table">
+                <thead><tr><th>บทบาท</th><th>Email</th><th>Password</th><th>หมายเหตุ</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="badge badge-purple">Super Admin</span></td><td><code>superadmin@allinmobile.com</code></td><td><code>admin1234</code></td><td>ผู้ดูแลระบบทั้งหมด</td></tr>
+                    <tr><td><span class="badge badge-info">เจ้าของร้าน</span></td><td><em>(สร้างจากการสมัคร)</em></td><td><em>(ตั้งเอง)</em></td><td>สมัครใหม่เพื่อทดสอบ</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">1.2 แผนบริการ (Plans)</h3>
+        <div class="overflow-x-auto mb-6">
+            <table class="data-table">
+                <thead><tr><th>แผน</th><th>ราคา/เดือน</th><th>ผู้ใช้สูงสุด</th><th>สาขาสูงสุด</th><th>สินค้าสูงสุด</th><th>ฟีเจอร์หลัก</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="badge" style="background:#e0e7ff;color:#3730a3">Free</span></td><td>฿0</td><td>2</td><td>1</td><td>50</td><td>ซ่อม, สต๊อก</td></tr>
+                    <tr><td><span class="badge" style="background:#dbeafe;color:#1e40af">Basic</span></td><td>฿499</td><td>5</td><td>1</td><td>500</td><td>+ POS, ใบเสนอราคา, รายงาน</td></tr>
+                    <tr><td><span class="badge" style="background:#ede9fe;color:#5b21b6">Pro</span></td><td>฿999</td><td>15</td><td>3</td><td>5,000</td><td>+ จัดซื้อ, การเงิน, LINE OA, หลายสาขา</td></tr>
+                    <tr><td><span class="badge" style="background:#fef3c7;color:#92400e">Enterprise</span></td><td>฿2,499</td><td>ไม่จำกัด</td><td>ไม่จำกัด</td><td>ไม่จำกัด</td><td>+ API, ทั้งหมด</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">1.3 บทบาทผู้ใช้</h3>
+        <div class="overflow-x-auto mb-6">
+            <table class="data-table">
+                <thead><tr><th>บทบาท</th><th>สิทธิ์หลัก</th></tr></thead>
+                <tbody>
+                    <tr><td>เจ้าของร้าน (owner)</td><td>สิทธิ์ทั้งหมด</td></tr>
+                    <tr><td>ผู้ดูแลระบบ (admin)</td><td>สิทธิ์ทั้งหมด</td></tr>
+                    <tr><td>ผู้จัดการสาขา (manager)</td><td>ซ่อม, สินค้า, ลูกค้า, ขาย, สต๊อก, รายงาน, จัดการผู้ใช้</td></tr>
+                    <tr><td>พนักงานขาย (sales)</td><td>ซ่อม(สร้าง/ดู), สินค้า(ดู), ลูกค้า, ขาย, ใบเสนอราคา</td></tr>
+                    <tr><td>ช่างซ่อม (technician)</td><td>ซ่อม(ดู/อัพเดตสถานะ/เพิ่มอะไหล่), สินค้า(ดู)</td></tr>
+                    <tr><td>คลังสินค้า (warehouse)</td><td>สินค้า, หมวดหมู่, สั่งซื้อ, โอนสต๊อก, ตรวจนับ, ซัพพลายเออร์</td></tr>
+                    <tr><td>บัญชี (accountant)</td><td>ดูยอดขาย/ซ่อม, รายงาน, ลูกหนี้, ปิดยอด, เงินสดย่อย</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ========== 2. Registration ========== -->
+    <section id="registration" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center"><i class="fas fa-user-plus"></i></span>
+            2. การสมัครใช้งาน (Registration)
+        </h2>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-REG-001</span> สมัครใช้งานสำเร็จ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">วัตถุประสงค์</div><div class="tc-value">ทดสอบการสมัครใช้งานร้านค้าใหม่</div></div>
+                <div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">ไม่ได้เข้าสู่ระบบ</div></div>
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">
+                    1. เปิดหน้า <code>/register</code><br>
+                    2. กรอกชื่อร้าน: <code>ร้านทดสอบ</code><br>
+                    3. กรอก Slug: <code>test-shop-01</code><br>
+                    4. กรอกชื่อเจ้าของ: <code>ทดสอบ เจ้าของ</code><br>
+                    5. กรอก Email: <code>test@example.com</code><br>
+                    6. กรอกเบอร์โทร: <code>0812345678</code><br>
+                    7. กรอกรหัสผ่าน: <code>password123</code><br>
+                    8. ยืนยันรหัสผ่าน: <code>password123</code><br>
+                    9. เลือกแผนบริการ (เช่น Free)<br>
+                    10. กดปุ่มสมัคร
+                </div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">
+                    ✅ ระบบสร้างร้านค้า สถานะ <code>trial</code><br>
+                    ✅ สร้างบทบาท 7 รายการ (owner, admin, manager, sales, technician, warehouse, accountant)<br>
+                    ✅ สร้างสาขาเริ่มต้น <code>HQ - สาขาหลัก</code><br>
+                    ✅ สร้างผู้ใช้เจ้าของร้าน<br>
+                    ✅ เข้าสู่ระบบอัตโนมัติ<br>
+                    ✅ redirect ไปหน้า Dashboard
+                </div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-REG-002</span> ตรวจสอบ Slug ซ้ำ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดหน้า <code>/register</code><br>2. กรอก Slug ที่ใช้ไปแล้ว<br>3. รอให้ระบบตรวจอัตโนมัติ (AJAX)</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงข้อความว่า slug ถูกใช้ไปแล้ว</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-REG-003</span> สมัครด้วย Email ซ้ำ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สมัครด้วย email ที่มีอยู่ในระบบแล้ว</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดง validation error <code>email ถูกใช้งานแล้ว</code></div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-REG-004</span> Validation ข้อมูลไม่ครบ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดหน้าสมัคร<br>2. กดสมัครโดยไม่กรอกข้อมูล</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดง error สำหรับทุกฟิลด์: shop_name, slug, email, password, plan_id, owner_name</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-REG-005</span> รหัสผ่านไม่ตรงกัน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. กรอกรหัสผ่าน: <code>password123</code><br>2. ยืนยันรหัสผ่าน: <code>different123</code><br>3. กดสมัคร</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดง error <code>รหัสผ่านไม่ตรงกัน</code></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 3. Auth ========== -->
+    <section id="auth" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-sign-in-alt"></i></span>
+            3. การเข้าสู่ระบบ / ออกจากระบบ
+        </h2>
+
+        <div class="tc-card">
+            <div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-AUTH-001</span> เข้าสู่ระบบสำเร็จ (ผู้ใช้ทั่วไป) <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดหน้า <code>/login</code><br>2. กรอก Email และ Password ที่ถูกต้อง<br>3. กดเข้าสู่ระบบ</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ redirect ไปหน้า Dashboard, มีข้อมูลสาขาของผู้ใช้, มี Audit Log</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-AUTH-002</span> เข้าสู่ระบบ (Super Admin) <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เข้าสู่ระบบด้วย <code>superadmin@allinmobile.com</code> / <code>admin1234</code></div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ redirect ไปหน้า <code>/superadmin</code></div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-AUTH-003</span> Email/Password ผิด <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. กรอก email หรือ password ที่ไม่ถูกต้อง</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดง error <code>อีเมลหรือรหัสผ่านไม่ถูกต้อง</code></div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-AUTH-004</span> บัญชีที่ถูกระงับ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">มี user ที่ <code>is_active = false</code></div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงข้อความ <code>บัญชีนี้ถูกระงับ</code></div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-AUTH-005</span> ร้านที่ถูกระงับ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">มี tenant สถานะ <code>suspended</code></div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงข้อความ <code>ร้านค้าถูกระงับ</code></div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-AUTH-006</span> ออกจากระบบ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. คลิก Logout</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ออกจากระบบสำเร็จ<br>✅ redirect ไปหน้า Login<br>✅ มี Audit Log บันทึก<br>✅ ไม่สามารถเข้าหน้า Dashboard ได้</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-AUTH-007</span> แก้ไขโปรไฟล์ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดหน้า <code>/profile</code><br>2. แก้ไขชื่อ, เบอร์โทร<br>3. กดบันทึก</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ข้อมูลอัพเดตสำเร็จ, แสดงข้อความ success</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-AUTH-008</span> เปลี่ยนรหัสผ่าน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดหน้า <code>/profile</code><br>2. กรอกรหัสผ่านปัจจุบัน<br>3. กรอกรหัสผ่านใหม่ (8 ตัวอักษรขึ้นไป)<br>4. ยืนยันรหัสผ่านใหม่<br>5. กดบันทึก</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ เปลี่ยนรหัสสำเร็จ, ล็อกอินด้วยรหัสผ่านใหม่ได้</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 4. Dashboard ========== -->
+    <section id="dashboard" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center"><i class="fas fa-tachometer-alt"></i></span>
+            4. แดชบอร์ด (Dashboard)
+        </h2>
+
+        <div class="tc-card">
+            <div class="tc-header bg-purple-50 text-purple-800"><span class="badge badge-info">TC-DASH-001</span> แสดงข้อมูลสรุปของวันนี้ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เข้าสู่ระบบ<br>2. ไปหน้า Dashboard</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ จำนวนงานซ่อมวันนี้ + รายได้<br>✅ จำนวนยอดขายวันนี้ + รายได้<br>✅ งานซ่อมที่รอดำเนินการ<br>✅ รายได้รวมรายเดือน<br>✅ สรุป Kanban ซ่อม<br>✅ แจ้งเตือนสต๊อกต่ำ<br>✅ ยอดลูกหนี้คงค้าง<br>✅ ซ่อมล่าสุด 5 รายการ<br>✅ ขายล่าสุด 5 รายการ</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-purple-50 text-purple-800"><span class="badge badge-info">TC-DASH-002</span> กรองข้อมูลตามสาขา <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">Owner/Admin ที่มีหลายสาขา</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ข้อมูลแสดงเฉพาะสาขาที่เลือก</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 5. Repairs ========== -->
+    <section id="repairs" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center"><i class="fas fa-tools"></i></span>
+            5. การจัดการงานซ่อม (Repairs)
+        </h2>
+
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">สถานะงานซ่อม (Workflow)</h3>
+        <div class="workflow-box">pending (รอซ่อม)
+  → waiting_parts (รออะไหล่)
+  → quoted (เสนอราคา)
+  → confirmed (ลูกค้ายืนยัน)
+  → in_progress (กำลังซ่อม)
+  → qc (ตรวจสอบ QC)
+  → completed (ซ่อมเสร็จ)
+  → delivered (ส่งคืนแล้ว)
+  → cancelled (ยกเลิก)
+  → claim (เคลม)</div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-001</span> สร้างงานซ่อมใหม่ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. งานซ่อม > สร้างใหม่<br>2. กรอกลูกค้า: ชื่อ, เบอร์โทร (จำเป็น)<br>3. กรอกอุปกรณ์: ประเภท, ยี่ห้อ, รุ่น (จำเป็น)<br>4. กรอก IMEI, Serial, สี, สภาพ (ถ้ามี)<br>5. กรอกอาการเสีย (จำเป็น)<br>6. ราคาประเมิน, วันส่งคืน<br>7. เงินมัดจำ (ถ้ามี)<br>8. เลือก: normal/urgent/vip<br>9. กดบันทึก</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ เลขที่ <code>REP-YYMMDD-XXXX</code>, สถานะ <code>pending</code><br>✅ redirect ไปหน้ารายละเอียด</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-002</span> เปลี่ยนสถานะงานซ่อม <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดรายละเอียดงานซ่อม<br>2. เปลี่ยนสถานะ เช่น pending → in_progress<br>3. ทดสอบสถานะต่างๆ ตาม workflow</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะเปลี่ยนสำเร็จ<br>✅ <code>completed</code>: บันทึก completed_at + วันหมดรับประกัน<br>✅ <code>delivered</code>: บันทึก delivered_at</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-003</span> มอบหมายช่างซ่อม <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดงานซ่อม<br>2. เลือกช่างซ่อม<br>3. กดมอบหมาย</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ อัพเดต technician_id, แสดงชื่อช่าง</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-004</span> เพิ่มอะไหล่ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดงานซ่อม<br>2. กดเพิ่มอะไหล่<br>3. เลือกสินค้า + จำนวน + ราคา<br>4. กดเพิ่ม</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สร้าง RepairPart สถานะ <code>pending</code><br>✅ แสดงในรายการอะไหล่<br>⚠️ <strong>ยังไม่หักสต๊อก</strong></div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-005</span> อนุมัติอะไหล่ (ตัดสต๊อก) <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">มี RepairPart สถานะ <code>pending</code></div></div>
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. ไปที่ อนุมัติอะไหล่<br>2. กดอนุมัติ</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>approved</code><br>✅ <span class="stock-impact stock-deduct">หักสต๊อก</span> ตามจำนวน<br>✅ สร้าง StockMovement <code>repair_use</code></div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-006</span> ปฏิเสธอะไหล่ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. กดปฏิเสธอะไหล่<br>2. กรอกเหตุผล (จำเป็น, สูงสุด 500 ตัวอักษร)</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>rejected</code> + เหตุผล<br>✅ ไม่หักสต๊อก</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-007</span> บันทึกการชำระเงิน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดงานซ่อม<br>2. กดรับชำระเงิน<br>3. กรอกจำนวนเงิน<br>4. เลือก: เงินสด/โอน/QR/บัตร<br>5. เลขอ้างอิง (ถ้ามี)<br>6. กดบันทึก</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ อัพเดต <code>unpaid</code> → <code>partial</code> หรือ <code>paid</code></div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-008</span> Kanban (ลากเปลี่ยนสถานะ) <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิด Kanban view<br>2. ลากงานซ่อมจากคอลัมน์หนึ่งไปอีกคอลัมน์</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะอัพเดตตามคอลัมน์ที่วาง</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-009</span> พิมพ์ใบเสร็จ / ใบแจ้งหนี้ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดรายละเอียดงานซ่อม<br>2. กดพิมพ์ใบเสร็จ<br>3. กดพิมพ์ใบแจ้งหนี้</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงข้อมูลถูกต้องทั้ง 2 แบบ</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-010</span> ติดตามงานซ่อม (สาธารณะ) <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิด <code>/track/{เลขที่งานซ่อม}</code> <strong>(ไม่ต้อง login)</strong></div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงข้อมูลสถานะงานซ่อม</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-orange-50 text-orange-800"><span class="badge badge-info">TC-REP-011</span> นำเข้า/ส่งออก CSV <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. ส่งออก CSV<br>2. ดาวน์โหลด Template<br>3. กรอกข้อมูลใน Template<br>4. นำเข้า CSV</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ส่งออก/นำเข้าสำเร็จ, ข้อมูลถูกต้อง</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 6. Sales / POS ========== -->
+    <section id="sales" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center"><i class="fas fa-cash-register"></i></span>
+            6. การขาย / POS
+        </h2>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-SALE-001</span> สร้างรายการขาย (เงินสด) <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. ไปที่ POS<br>2. เลือกสินค้า (สแกนบาร์โค้ด/ค้นหา)<br>3. ปรับจำนวน<br>4. กรอกส่วนลด (ถ้ามี)<br>5. เลือก: เงินสด<br>6. กรอกจำนวนเงินที่รับ<br>7. กดบันทึก</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ เลขที่ <code>INV-YYMMDD-XXXX</code><br>✅ สถานะ <code>completed</code>, ชำระ <code>paid</code><br>✅ <span class="stock-impact stock-deduct">หักสต๊อก</span><br>✅ แสดงเงินทอน</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-SALE-002</span> ขายเชื่อ (Credit) <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">มีลูกค้าที่มี credit_limit > 0</div></div>
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เลือกลูกค้า (จำเป็นสำหรับเชื่อ)<br>2. เลือกสินค้า<br>3. เลือก: <code>credit</code><br>4. กดบันทึก</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>pending</code>, ชำระ <code>pending</code><br>✅ สร้าง AR อัตโนมัติ<br>✅ <span class="stock-impact stock-deduct">หักสต๊อก</span><br>✅ ตรวจสอบ credit_limit</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-SALE-003</span> ยกเลิกรายการขาย <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดรายการขาย<br>2. กดยกเลิก</div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>cancelled</code><br>✅ <span class="stock-impact stock-add">คืนสต๊อก</span> อัตโนมัติ</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-SALE-004</span> พิมพ์ใบเสร็จ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงหน้าใบเสร็จพร้อมข้อมูลครบถ้วน</div></div>
+            </div>
+        </div>
+
+        <div class="tc-card">
+            <div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-SALE-005</span> ชำระเงินรายการขายเชื่อ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div>
+            <div class="tc-body">
+                <div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">มีรายการขายเชื่อสถานะ <code>pending</code></div></div>
+                <div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>completed/paid</code>, อัพเดต AR เป็น <code>paid</code></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 7. Products ========== -->
+    <section id="products" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center"><i class="fas fa-box"></i></span>
+            7. สินค้า (Products)
+        </h2>
+
+        <div class="tc-card"><div class="tc-header bg-indigo-50 text-indigo-800"><span class="badge badge-info">TC-PROD-001</span> สร้างสินค้าใหม่ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สินค้า > สร้างใหม่<br>2. กรอก SKU (จำเป็น)<br>3. ชื่อสินค้า (จำเป็น)<br>4. เลือกหมวดหมู่<br>5. เลือกซัพพลายเออร์<br>6. ราคาทุน, ราคาขายปลีก (จำเป็น)<br>7. ราคาส่ง, ราคาช่าง, ราคาออนไลน์ (ถ้ามี)<br>8. สต๊อกตั้งต้น<br>9. reorder point<br>10. รูปภาพ (JPEG/PNG/JPG/GIF, ≤2MB)<br>11. กดบันทึก</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สร้างสำเร็จ + สร้าง BranchStock</div></div></div></div>
+
+        <div class="tc-card"><div class="tc-header bg-indigo-50 text-indigo-800"><span class="badge badge-info">TC-PROD-002</span> แก้ไขสินค้า <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ อัพเดตข้อมูลสำเร็จ</div></div></div></div>
+
+        <div class="tc-card"><div class="tc-header bg-indigo-50 text-indigo-800"><span class="badge badge-info">TC-PROD-003</span> ปรับสต๊อก <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดสินค้า<br>2. กดปรับสต๊อก<br>3. กรอกจำนวน (+5 หรือ -3)<br>4. กรอกเหตุผล (จำเป็น)<br>5. กดบันทึก</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ <span class="stock-impact stock-adjust">ปรับสต๊อก</span> + สร้าง StockMovement</div></div></div></div>
+
+        <div class="tc-card"><div class="tc-header bg-indigo-50 text-indigo-800"><span class="badge badge-info">TC-PROD-004</span> ค้นหาด้วยบาร์โค้ด <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. ใช้ API <code>/api/products/barcode?barcode=XXX</code></div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ คืนข้อมูลสินค้าที่ตรงกับบาร์โค้ดหรือ SKU</div></div></div></div>
+
+        <div class="tc-card"><div class="tc-header bg-indigo-50 text-indigo-800"><span class="badge badge-info">TC-PROD-005</span> ลบสินค้า <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ไม่มีประวัติ → ลบจริง<br>✅ มีประวัติ → ปิดการใช้งาน (is_active=false)</div></div></div></div>
+
+        <div class="tc-card"><div class="tc-header bg-indigo-50 text-indigo-800"><span class="badge badge-info">TC-PROD-006</span> นำเข้า/ส่งออก CSV <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ นำเข้า/ส่งออกสำเร็จ</div></div></div></div>
+    </section>
+
+    <!-- ========== 8-10. Categories, Customers, Suppliers ========== -->
+    <section id="categories" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-teal-100 text-teal-600 rounded-lg flex items-center justify-center"><i class="fas fa-tags"></i></span>
+            8. หมวดหมู่ (Categories)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-teal-50 text-teal-800"><span class="badge badge-info">TC-CAT-001</span> CRUD หมวดหมู่ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สร้างหมวดหมู่ใหม่<br>2. แก้ไข<br>3. ลบ<br>4. นำเข้า/ส่งออก CSV</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ทุกฟังก์ชัน CRUD ทำงานถูกต้อง</div></div></div></div>
+    </section>
+
+    <section id="customers" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-pink-100 text-pink-600 rounded-lg flex items-center justify-center"><i class="fas fa-users"></i></span>
+            9. ลูกค้า (Customers)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-pink-50 text-pink-800"><span class="badge badge-info">TC-CUST-001</span> CRUD ลูกค้า <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สร้างลูกค้า (ชื่อ, เบอร์, email, ที่อยู่, credit_limit, credit_days)<br>2. แก้ไข<br>3. ลบ<br>4. CSV import/export</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ทุกฟังก์ชัน CRUD ทำงานถูกต้อง</div></div></div></div>
+    </section>
+
+    <section id="suppliers" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center"><i class="fas fa-truck"></i></span>
+            10. ซัพพลายเออร์ (Suppliers)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-gray-50 text-gray-800"><span class="badge badge-info">TC-SUP-001</span> CRUD ซัพพลายเออร์ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สร้าง: รหัส (จำเป็น, unique ต่อ tenant), ชื่อ, เบอร์, email, ที่อยู่<br>2. แก้ไข<br>3. ลบ</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ CRUD ทำงานถูกต้อง</div></div></div></div>
+    </section>
+
+    <!-- ========== 11. Quotations ========== -->
+    <section id="quotations" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-cyan-100 text-cyan-600 rounded-lg flex items-center justify-center"><i class="fas fa-file-alt"></i></span>
+            11. ใบเสนอราคา (Quotations)
+        </h2>
+        <div class="workflow-box">draft (ร่าง) → sent (ส่งแล้ว) → approved / rejected / expired → converted (แปลงเป็นขาย)</div>
+        <div class="tc-card"><div class="tc-header bg-cyan-50 text-cyan-800"><span class="badge badge-info">TC-QUOT-001</span> สร้างใบเสนอราคา <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. ใบเสนอราคา > สร้างใหม่<br>2. กรอกลูกค้า (จำเป็น)<br>3. หัวข้อ, วันหมดอายุ<br>4. เพิ่มสินค้า (≥ 1 รายการ)<br>5. ส่วนลด, ภาษี<br>6. เงื่อนไข, หมายเหตุ<br>7. กดบันทึก</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ เลขที่ <code>QT-YYMMDD-XXXX</code> สถานะ <code>draft</code></div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-cyan-50 text-cyan-800"><span class="badge badge-info">TC-QUOT-002</span> เปลี่ยนสถานะ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ draft → sent → approved<br>✅ draft → sent → rejected<br>✅ draft → sent → expired</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-cyan-50 text-cyan-800"><span class="badge badge-info">TC-QUOT-003</span> แก้ไขได้เฉพาะ draft <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะอื่น → ไม่สามารถแก้ไขได้</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-cyan-50 text-cyan-800"><span class="badge badge-info">TC-QUOT-004</span> พิมพ์ใบเสนอราคา <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงหน้าพิมพ์ข้อมูลครบถ้วน</div></div></div></div>
+    </section>
+
+    <!-- ========== 12. Purchase Orders ========== -->
+    <section id="po" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-file-invoice"></i></span>
+            12. ใบสั่งซื้อ (Purchase Orders)
+        </h2>
+        <div class="workflow-box">draft → pending → approved → partial → received
+                                    ↘ cancelled</div>
+        <div class="tc-card"><div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-PO-001</span> สร้างใบสั่งซื้อ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. ใบสั่งซื้อ > สร้างใหม่<br>2. เลือกซัพพลายเออร์ (จำเป็น)<br>3. วันที่คาดว่าจะรับ<br>4. เพิ่มสินค้า (≥ 1 รายการ)<br>5. ส่วนลด, ภาษี<br>6. กดบันทึก</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ เลขที่ <code>PO-YYMMDD-XXXX</code> สถานะ <code>draft</code></div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-PO-002</span> อนุมัติ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะเปลี่ยนเป็น <code>approved</code></div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-PO-003</span> ยกเลิก <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>cancelled</code> + เหตุผล (จำเป็น)</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-PO-004</span> พิมพ์ใบสั่งซื้อ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงหน้าพิมพ์ข้อมูลครบถ้วน</div></div></div></div>
+    </section>
+
+    <!-- ========== 13. Goods Receipts ========== -->
+    <section id="gr" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center"><i class="fas fa-clipboard-check"></i></span>
+            13. รับสินค้า (Goods Receipts)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-GR-001</span> สร้างใบรับสินค้า <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">PO ที่ <code>approved</code></div></div><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. รับสินค้า > สร้างใหม่<br>2. เลือก PO (จำเป็น)<br>3. เลข Invoice ซัพพลายเออร์<br>4. กรอกจำนวนที่รับ<br>5. กดบันทึก</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ เลขที่ <code>GR-YYMMDD-XXXX</code><br>✅ <span class="stock-impact stock-add">เพิ่มสต๊อก</span><br>✅ สร้าง StockMovement <code>goods_receipt</code><br>✅ อัพเดต PO เป็น <code>partial</code> หรือ <code>received</code></div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-GR-002</span> รับสินค้าบางส่วน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ GR แรก → PO <code>partial</code><br>✅ GR ที่สอง → PO <code>received</code><br>✅ สต๊อกรวมถูกต้อง</div></div></div></div>
+    </section>
+
+    <!-- ========== 14. Stock Takes ========== -->
+    <section id="stocktake" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center"><i class="fas fa-clipboard-list"></i></span>
+            14. ตรวจนับสต๊อก (Stock Takes)
+        </h2>
+        <div class="workflow-box">draft → in_progress → completed → approved</div>
+        <div class="tc-card"><div class="tc-header bg-amber-50 text-amber-800"><span class="badge badge-info">TC-ST-001</span> ตรวจนับสต๊อกทั้งหมด <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สร้างใบตรวจนับ ประเภท <code>full</code><br>2. เริ่มนับ (in_progress)<br>3. กรอกจำนวน<br>4. เสร็จสิ้น (completed)<br>5. อนุมัติ (approved)</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ โหลดสินค้าอัตโนมัติ<br>✅ เปรียบเทียบระบบ vs จริง<br>✅ <span class="stock-impact stock-adjust">ปรับสต๊อกตามผลต่าง</span> เมื่ออนุมัติ</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-amber-50 text-amber-800"><span class="badge badge-info">TC-ST-002</span> ตรวจนับเฉพาะหมวดหมู่ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ โหลดเฉพาะสินค้าในหมวดหมู่ที่เลือก</div></div></div></div>
+    </section>
+
+    <!-- ========== 15. Stock Transfers ========== -->
+    <section id="transfer" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center"><i class="fas fa-exchange-alt"></i></span>
+            15. โอนสต๊อก (Stock Transfers)
+        </h2>
+        <div class="workflow-box">pending → approved → shipped (หักสต๊อกต้นทาง) → received (เพิ่มสต๊อกปลายทาง)
+                                                                    ↘ cancelled</div>
+        <div class="tc-card"><div class="tc-header bg-purple-50 text-purple-800"><span class="badge badge-info">TC-TF-001</span> โอนสต๊อกระหว่างสาขา <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">≥ 2 สาขา (แผน Pro ขึ้นไป)</div></div><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สร้างใบโอน: จากสาขา, ไปสาขา<br>2. เพิ่มสินค้า + จำนวน<br>3. บันทึก → อนุมัติ → จัดส่ง → สาขาปลายทาง กดรับ</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ shipped: <span class="stock-impact stock-deduct">หักสต๊อกต้นทาง</span><br>✅ received: <span class="stock-impact stock-add">เพิ่มสต๊อกปลายทาง</span></div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-purple-50 text-purple-800"><span class="badge badge-info">TC-TF-002</span> ยกเลิกการโอน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>cancelled</code>, สต๊อกไม่เปลี่ยน</div></div></div></div>
+    </section>
+
+    <!-- ========== 16. Branch Orders ========== -->
+    <section id="branch-orders" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center"><i class="fas fa-store"></i></span>
+            16. สั่งซื้อจากสาขาใหญ่ (Branch Orders)
+        </h2>
+        <div class="workflow-box">pending → approved → preparing → shipped (หักสต๊อกสาขาใหญ่) → received (เพิ่มสต๊อกสาขาย่อย)
+                                                                              ↘ cancelled</div>
+        <div class="tc-card"><div class="tc-header bg-red-50 text-red-800"><span class="badge badge-info">TC-BO-001</span> สั่งซื้อจากสาขาย่อย <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สาขาย่อย: สร้างใบสั่ง<br>2. สาขาใหญ่: อนุมัติ<br>3. สาขาใหญ่: จัดส่ง<br>4. สาขาย่อย: ยืนยันรับของ</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ shipped: <span class="stock-impact stock-deduct">หักสต๊อกสาขาใหญ่</span><br>✅ received: <span class="stock-impact stock-add">เพิ่มสต๊อกสาขาย่อย</span></div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-red-50 text-red-800"><span class="badge badge-info">TC-BO-002</span> พิมพ์ใบสั่ง <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงหน้าพิมพ์ถูกต้อง</div></div></div></div>
+    </section>
+
+    <!-- ========== 17. AR ========== -->
+    <section id="ar" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center"><i class="fas fa-hand-holding-usd"></i></span>
+            17. บัญชีลูกหนี้ (Accounts Receivable)
+        </h2>
+        <div class="workflow-box">pending → partial → paid | overdue | written_off</div>
+        <div class="tc-card"><div class="tc-header bg-yellow-50 text-yellow-800"><span class="badge badge-info">TC-AR-001</span> ดูรายการลูกหนี้ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงรายการลูกหนี้ + ยอดรวมคงค้าง</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-yellow-50 text-yellow-800"><span class="badge badge-info">TC-AR-002</span> ชำระเงินบางส่วน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดรายการ<br>2. ชำระเงิน (น้อยกว่ายอด)<br>3. เลือกช่องทาง<br>4. กรอกวันที่ (จำเป็น)</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>partial</code>, ยอดคงค้างลดลง</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-yellow-50 text-yellow-800"><span class="badge badge-info">TC-AR-003</span> ชำระเงินเต็มจำนวน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะเปลี่ยนเป็น <code>paid</code></div></div></div></div>
+    </section>
+
+    <!-- ========== 18. Finance ========== -->
+    <section id="finance" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center"><i class="fas fa-wallet"></i></span>
+            18. การเงิน (Finance)
+        </h2>
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">18.1 เงินสดย่อย (Petty Cash)</h3>
+        <div class="tc-card"><div class="tc-header bg-emerald-50 text-emerald-800"><span class="badge badge-info">TC-FIN-001</span> บันทึกเงินสดย่อย <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. การเงิน > เงินสดย่อย > สร้างใหม่<br>2. ประเภท: รับ (in) / จ่าย (out)<br>3. หมวด: อุปกรณ์, ค่าเดินทาง, อาหาร, สาธารณูปโภค, ซ่อมบำรุง, อื่นๆ<br>4. จำนวนเงิน (> 0)<br>5. รายละเอียด (จำเป็น)<br>6. เลขใบเสร็จ, วันที่<br>7. กดบันทึก</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ บันทึกสำเร็จ, ยอดรวมถูกต้อง</div></div></div></div>
+        <h3 class="text-lg font-semibold text-gray-700 mb-3 mt-6">18.2 ปิดยอดประจำวัน (Daily Settlement)</h3>
+        <div class="tc-card"><div class="tc-header bg-emerald-50 text-emerald-800"><span class="badge badge-info">TC-FIN-002</span> สร้างใบปิดยอด <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. การเงิน > ปิดยอด > สร้างใหม่<br>2. เลือกวันที่<br>3. เงินสดเปิดร้าน<br>4. ยอดขายแยกช่อง: เงินสด, โอน, QR, บัตร, เชื่อ<br>5. cash in / cash out<br>6. เงินสดจริง<br>7. เหตุผลผลต่าง (ถ้ามี)<br>8. กดบันทึก</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>pending</code><br>✅ คำนวณ: เงินสดที่ควรมี = เปิดร้าน + ขายเงินสด + cash_in - cash_out<br>✅ ผลต่าง = เงินสดจริง - เงินสดที่ควรมี</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-emerald-50 text-emerald-800"><span class="badge badge-info">TC-FIN-003</span> อนุมัติใบปิดยอด <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>approved</code></div></div></div></div>
+    </section>
+
+    <!-- ========== 19. Tenant Orders ========== -->
+    <section id="tenant-orders" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-violet-100 text-violet-600 rounded-lg flex items-center justify-center"><i class="fas fa-shopping-cart"></i></span>
+            19. สั่งสินค้าจากร้านกลาง (Tenant Orders)
+        </h2>
+        <div class="workflow-box">pending → confirmed (Super Admin) → preparing → shipped → received (Tenant)
+                                                                          ↘ cancelled</div>
+        <div class="tc-card"><div class="tc-header bg-violet-50 text-violet-800"><span class="badge badge-info">TC-TO-001</span> ร้านค้าสั่งสินค้า <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สั่งสินค้า > สร้างใหม่<br>2. เลือกสินค้า + จำนวน (≥ 1)<br>3. ที่อยู่จัดส่ง, เบอร์โทร<br>4. หมายเหตุ<br>5. กดสั่ง</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะ <code>pending</code></div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-violet-50 text-violet-800"><span class="badge badge-info">TC-TO-002</span> Super Admin จัดการ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. Super Admin: ยืนยัน<br>2. Super Admin: จัดส่ง + เลขพัสดุ<br>3. ร้านค้า: กดรับ</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สถานะเปลี่ยนตาม workflow</div></div></div></div>
+    </section>
+
+    <!-- ========== 20. Reports ========== -->
+    <section id="reports" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-cyan-100 text-cyan-600 rounded-lg flex items-center justify-center"><i class="fas fa-chart-bar"></i></span>
+            20. รายงาน (Reports)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-cyan-50 text-cyan-800"><span class="badge badge-info">TC-RPT-001</span> รายงานยอดขาย <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงสรุปยอดขาย ถูกต้องตามช่วงเวลา</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-cyan-50 text-cyan-800"><span class="badge badge-info">TC-RPT-002</span> รายงานงานซ่อม <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงข้อมูลงานซ่อมถูกต้อง</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-cyan-50 text-cyan-800"><span class="badge badge-info">TC-RPT-003</span> รายงานสต๊อก <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงข้อมูลสต๊อกถูกต้อง + สินค้าสต๊อกต่ำ</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-cyan-50 text-cyan-800"><span class="badge badge-info">TC-RPT-004</span> รายงานการเงิน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงรายรับ-รายจ่าย, สรุปตามช่วงเวลา</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-cyan-50 text-cyan-800"><span class="badge badge-info">TC-RPT-005</span> รายงานจัดซื้อ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงข้อมูลการจัดซื้อถูกต้อง</div></div></div></div>
+    </section>
+
+    <!-- ========== 21. Users ========== -->
+    <section id="users" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-gray-200 text-gray-600 rounded-lg flex items-center justify-center"><i class="fas fa-user-cog"></i></span>
+            21. การจัดการผู้ใช้ (Users)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-gray-50 text-gray-800"><span class="badge badge-info">TC-USER-001</span> สร้างผู้ใช้ใหม่ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">สิทธิ์ <code>users.*</code></div></div><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. ผู้ใช้ > สร้าง<br>2. ชื่อ, email, password<br>3. เลือกบทบาท<br>4. เลือกสาขา<br>5. กดบันทึก</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สร้างสำเร็จ, ตรวจสอบไม่เกิน max ของแผน</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-gray-50 text-gray-800"><span class="badge badge-info">TC-USER-002</span> แก้ไข / ปิดใช้งาน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แก้ไขสำเร็จ<br>✅ ปิดใช้งาน → login ไม่ได้</div></div></div></div>
+    </section>
+
+    <!-- ========== 22. Branches ========== -->
+    <section id="branches" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-building"></i></span>
+            22. สาขา (Branches)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-blue-50 text-blue-800"><span class="badge badge-info">TC-BRANCH-001</span> CRUD สาขา <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">สิทธิ์ <code>branches.*</code>, แผน Pro ขึ้นไป</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ CRUD ถูกต้อง, ไม่เกิน max สาขาของแผน</div></div></div></div>
+    </section>
+
+    <!-- ========== 23. Roles ========== -->
+    <section id="roles" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center"><i class="fas fa-shield-alt"></i></span>
+            23. บทบาทและสิทธิ์ (Roles & Permissions)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-indigo-50 text-indigo-800"><span class="badge badge-info">TC-ROLE-001</span> สร้าง/แก้ไข <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สร้าง/แก้ไขสำเร็จ, กำหนดให้ผู้ใช้ได้</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-indigo-50 text-indigo-800"><span class="badge badge-info">TC-ROLE-002</span> ลบบทบาท <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ไม่มีผู้ใช้ → ลบได้<br>✅ มีผู้ใช้ → แสดง error</div></div></div></div>
+    </section>
+
+    <!-- ========== 24. Settings ========== -->
+    <section id="settings" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center"><i class="fas fa-cog"></i></span>
+            24. ตั้งค่าระบบ (Settings)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-gray-50 text-gray-800"><span class="badge badge-info">TC-SET-001</span> ตั้งค่าร้าน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ บันทึก: ชื่อร้าน, โลโก้, ที่อยู่, เบอร์โทร, เลขผู้เสียภาษี<br>✅ แสดงข้อมูลใหม่ในใบเสร็จ</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-gray-50 text-gray-800"><span class="badge badge-info">TC-SET-002</span> Template ใบเสร็จ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แก้ไข template + Preview + บันทึก</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-gray-50 text-gray-800"><span class="badge badge-info">TC-SET-003</span> LINE OA <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">เงื่อนไขเบื้องต้น</div><div class="tc-value">แผน Pro ขึ้นไป (ฟีเจอร์ <code>line_oa</code>)</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ บันทึก Token/Secret + ทดสอบ connection</div></div></div></div>
+    </section>
+
+    <!-- ========== 25. Notifications ========== -->
+    <section id="notifications" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center"><i class="fas fa-bell"></i></span>
+            25. ระบบแจ้งเตือน
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-yellow-50 text-yellow-800"><span class="badge badge-info">TC-NOTIF-001</span> ดู/จัดการแจ้งเตือน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดงรายการ + mark as read สำเร็จ</div></div></div></div>
+    </section>
+
+    <!-- ========== 26. Audit ========== -->
+    <section id="audit" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-gray-100 text-gray-500 rounded-lg flex items-center justify-center"><i class="fas fa-history"></i></span>
+            26. ประวัติการใช้งาน (Audit Logs)
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-gray-50 text-gray-800"><span class="badge badge-info">TC-AUDIT-001</span> ดูประวัติ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แสดง login/logout, สร้าง/แก้ไข/ลบข้อมูล</div></div></div></div>
+    </section>
+
+    <!-- ========== 27. Super Admin ========== -->
+    <section id="superadmin" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center"><i class="fas fa-crown"></i></span>
+            27. การจัดการ Super Admin
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-yellow-50 text-yellow-800"><span class="badge badge-purple">TC-SA-001</span> Super Admin Dashboard <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ จำนวน tenant ทั้งหมด/active/trial/suspended<br>✅ ผู้ใช้ทั้งหมด<br>✅ รายได้รวม<br>✅ ใบค้างชำระ, ร้านล่าสุด, trial ใกล้หมด</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-yellow-50 text-yellow-800"><span class="badge badge-purple">TC-SA-002</span> จัดการร้านค้า <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. รายการร้านค้า<br>2. สร้างร้านค้าใหม่<br>3. ดูรายละเอียด<br>4. แก้ไข<br>5. ระงับ (suspend)<br>6. เปิดใช้งาน (activate)<br>7. ลบ</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ทุกฟังก์ชันทำงานถูกต้อง</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-yellow-50 text-yellow-800"><span class="badge badge-purple">TC-SA-003</span> Login As (สวมบทบาท) <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. เปิดร้านค้า > Login As<br>2. ตรวจสอบการใช้งาน<br>3. กด Switch Back</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ เข้าในฐานะเจ้าของร้าน + แถบแจ้งเตือน<br>✅ กดกลับ → Super Admin</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-yellow-50 text-yellow-800"><span class="badge badge-purple">TC-SA-004</span> จัดการแผนบริการ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ CRUD แผน, ลบไม่ได้ถ้ามีร้านใช้</div></div></div></div>
+    </section>
+
+    <!-- ========== 28. Billing ========== -->
+    <section id="billing" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center"><i class="fas fa-credit-card"></i></span>
+            28. Billing & แผนบริการ
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-BILL-001</span> ดูข้อมูล Billing <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ แผนปัจจุบัน, วันหมดทดลอง, การใช้งาน, invoices</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-green-50 text-green-800"><span class="badge badge-info">TC-BILL-002</span> เปลี่ยนแผน <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ อัพเดตแผนสำเร็จ<br>✅ ฟีเจอร์ใหม่เปิดใช้งานได้<br>✅ ข้อจำกัดเปลี่ยนตามแผนใหม่</div></div></div></div>
+    </section>
+
+    <!-- ========== 29. Multi-Tenancy ========== -->
+    <section id="multi-tenancy" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center"><i class="fas fa-layer-group"></i></span>
+            29. การทดสอบ Multi-Tenancy
+        </h2>
+        <div class="tc-card"><div class="tc-header bg-purple-50 text-purple-800"><span class="badge badge-purple">TC-MT-001</span> ข้อมูลแยกตาม Tenant <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สมัครร้าน A → สร้างข้อมูล<br>2. สมัครร้าน B → สร้างข้อมูล<br>3. login ร้าน A: ตรวจเห็นเฉพาะข้อมูลร้าน A<br>4. login ร้าน B: ตรวจเห็นเฉพาะข้อมูลร้าน B</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ ข้อมูลแยกสมบูรณ์ ไม่มีข้ามร้าน</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-purple-50 text-purple-800"><span class="badge badge-purple">TC-MT-002</span> Code ซ้ำได้ข้าม Tenant <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. ร้าน A: สร้างสาขา code <code>HQ</code><br>2. ร้าน B: สร้างสาขา code <code>HQ</code></div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ สร้างได้ทั้งคู่ (unique ต่อ tenant)</div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-purple-50 text-purple-800"><span class="badge badge-purple">TC-MT-003</span> ร้านถูกระงับ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. Super Admin ระงับร้าน<br>2. ผู้ใช้ร้านนั้น login<br>3. ผู้ใช้ที่ login อยู่ถูก logout</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ login ไม่ได้ + แสดง <code>ร้านค้าถูกระงับ</code></div></div></div></div>
+        <div class="tc-card"><div class="tc-header bg-purple-50 text-purple-800"><span class="badge badge-purple">TC-MT-004</span> Trial หมดอายุ <span class="ml-auto checkbox-result" onclick="toggleCheck(this)"></span></div><div class="tc-body"><div class="tc-row"><div class="tc-label">ขั้นตอน</div><div class="tc-value">1. สร้างร้าน trial<br>2. ตั้งวันหมดอายุ = วันที่ผ่านมา<br>3. เข้าใช้งานระบบ</div></div><div class="tc-row"><div class="tc-label">ผลลัพธ์ที่คาดหวัง</div><div class="tc-value">✅ redirect ไปหน้า Billing เพื่อ upgrade</div></div></div></div>
+    </section>
+
+    <!-- ========== 30. Permissions ========== -->
+    <section id="permissions" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center"><i class="fas fa-lock"></i></span>
+            30. Permission & Feature Gating
+        </h2>
+
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">TC-PERM-001: ทดสอบสิทธิ์ตามบทบาท</h3>
+        <div class="overflow-x-auto mb-6">
+            <table class="data-table">
+                <thead><tr><th>บทบาท</th><th class="text-green-700">✅ สามารถเข้าถึง</th><th class="text-red-700">❌ ไม่สามารถเข้าถึง</th><th>ผล</th></tr></thead>
+                <tbody>
+                    <tr><td>ช่างซ่อม</td><td>ดูงานซ่อม, อัพเดตสถานะ, เพิ่มอะไหล่</td><td>สร้างงานขาย, ดูรายงาน, จัดการผู้ใช้</td><td><span class="checkbox-result" onclick="toggleCheck(this)"></span></td></tr>
+                    <tr><td>พนักงานขาย</td><td>สร้างงานซ่อม, ขายของ, ดูสินค้า</td><td>จัดการผู้ใช้, ดูรายงานการเงิน</td><td><span class="checkbox-result" onclick="toggleCheck(this)"></span></td></tr>
+                    <tr><td>คลังสินค้า</td><td>จัดการสินค้า, ตรวจนับ, โอนสต๊อก</td><td>สร้างงานขาย, ดูลูกหนี้</td><td><span class="checkbox-result" onclick="toggleCheck(this)"></span></td></tr>
+                    <tr><td>บัญชี</td><td>ดูรายงาน, จัดการลูกหนี้, ปิดยอด</td><td>สร้างสินค้า, จัดการผู้ใช้</td><td><span class="checkbox-result" onclick="toggleCheck(this)"></span></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">TC-PERM-002: ทดสอบ Feature Gating ตามแผน</h3>
+        <div class="overflow-x-auto mb-6">
+            <table class="data-table">
+                <thead><tr><th>แผน</th><th class="text-green-700">✅ สามารถใช้</th><th class="text-red-700">❌ ถูกบล็อก</th><th>ผล</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="badge" style="background:#e0e7ff;color:#3730a3">Free</span></td><td>ซ่อม, สต๊อก</td><td>POS, ใบเสนอราคา, รายงาน, จัดซื้อ, การเงิน, LINE OA</td><td><span class="checkbox-result" onclick="toggleCheck(this)"></span></td></tr>
+                    <tr><td><span class="badge" style="background:#dbeafe;color:#1e40af">Basic</span></td><td>+ POS, ใบเสนอราคา, รายงาน</td><td>จัดซื้อ, การเงิน, LINE OA, หลายสาขา</td><td><span class="checkbox-result" onclick="toggleCheck(this)"></span></td></tr>
+                    <tr><td><span class="badge" style="background:#ede9fe;color:#5b21b6">Pro</span></td><td>+ จัดซื้อ, การเงิน, LINE OA, หลายสาขา</td><td>API</td><td><span class="checkbox-result" onclick="toggleCheck(this)"></span></td></tr>
+                    <tr><td><span class="badge" style="background:#fef3c7;color:#92400e">Enterprise</span></td><td>ทั้งหมด</td><td>-</td><td><span class="checkbox-result" onclick="toggleCheck(this)"></span></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0;">
+            <strong>⚠️ ผลลัพธ์ที่คาดหวัง:</strong> เมื่อเข้าถึงฟีเจอร์ที่ไม่มีในแผน → redirect ไปหน้า Billing + แจ้ง upgrade
+        </div>
+    </section>
+
+    <!-- ========== Appendix ========== -->
+    <section id="appendix" class="section-anchor mb-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="w-10 h-10 bg-gray-100 text-gray-500 rounded-lg flex items-center justify-center"><i class="fas fa-paperclip"></i></span>
+            ภาคผนวก
+        </h2>
+
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">รูปแบบเลขที่เอกสาร</h3>
+        <div class="overflow-x-auto mb-6">
+            <table class="data-table">
+                <thead><tr><th>เอกสาร</th><th>รูปแบบ</th><th>ตัวอย่าง</th></tr></thead>
+                <tbody>
+                    <tr><td>งานซ่อม</td><td><code>REP-YYMMDD-XXXX</code></td><td>REP-260228-0001</td></tr>
+                    <tr><td>ใบขาย</td><td><code>INV-YYMMDD-XXXX</code></td><td>INV-260228-0001</td></tr>
+                    <tr><td>ใบสั่งซื้อ</td><td><code>PO-YYMMDD-XXXX</code></td><td>PO-260228-0001</td></tr>
+                    <tr><td>ใบรับของ</td><td><code>GR-YYMMDD-XXXX</code></td><td>GR-260228-0001</td></tr>
+                    <tr><td>ตรวจนับ</td><td><code>ST-YYMMDD-XXXX</code></td><td>ST-260228-0001</td></tr>
+                    <tr><td>โอนสต๊อก</td><td><code>TF-YYMMDD-XXXX</code></td><td>TF-260228-0001</td></tr>
+                    <tr><td>ใบเสนอราคา</td><td><code>QT-YYMMDD-XXXX</code></td><td>QT-260228-0001</td></tr>
+                    <tr><td>สั่งซื้อสาขา</td><td><code>BO-YYMMDD-XXXX</code></td><td>BO-260228-0001</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">จุดทดสอบเรื่องสต๊อก (สำคัญ)</h3>
+        <div class="overflow-x-auto mb-6">
+            <table class="data-table">
+                <thead><tr><th>การกระทำ</th><th>ผลต่อสต๊อก</th></tr></thead>
+                <tbody>
+                    <tr><td>ขายสินค้า</td><td><span class="stock-impact stock-deduct">หัก</span> สต๊อกสาขาที่ขาย</td></tr>
+                    <tr><td>ยกเลิกรายการขาย</td><td><span class="stock-impact stock-add">คืน</span> สต๊อก</td></tr>
+                    <tr><td>อนุมัติอะไหล่ซ่อม</td><td><span class="stock-impact stock-deduct">หัก</span> สต๊อก</td></tr>
+                    <tr><td>รับสินค้าจาก Supplier (GR)</td><td><span class="stock-impact stock-add">เพิ่ม</span> สต๊อก</td></tr>
+                    <tr><td>ตรวจนับอนุมัติ</td><td><span class="stock-impact stock-adjust">ปรับ</span> สต๊อกตามผลต่าง</td></tr>
+                    <tr><td>โอนสต๊อก — จัดส่ง</td><td><span class="stock-impact stock-deduct">หัก</span> จากต้นทาง</td></tr>
+                    <tr><td>โอนสต๊อก — รับของ</td><td><span class="stock-impact stock-add">เพิ่ม</span> ที่ปลายทาง</td></tr>
+                    <tr><td>สั่งซื้อสาขา — จัดส่ง</td><td><span class="stock-impact stock-deduct">หัก</span> จากสาขาใหญ่</td></tr>
+                    <tr><td>สั่งซื้อสาขา — รับของ</td><td><span class="stock-impact stock-add">เพิ่ม</span> ที่สาขาย่อย</td></tr>
+                    <tr><td>ปรับสต๊อกด้วยมือ</td><td><span class="stock-impact stock-adjust">เพิ่ม/หัก</span> ตามจำนวนที่กรอก</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="text-center text-gray-400 text-sm py-8 border-t">
+        <p>จัดทำโดยทีมพัฒนา All In Mobile — เวอร์ชัน 1.0 — 28 กุมภาพันธ์ 2026</p>
+    </div>
+
+    </div><!-- max-w-5xl -->
+</div><!-- content -->
+
+<script>
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+}
+
+// Close sidebar when clicking a nav link (mobile)
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+    });
+});
+
+// Checkbox toggle
+function toggleCheck(el) {
+    el.classList.toggle('checked');
+    updateProgress();
+    saveState();
+}
+
+// Progress tracking
+function updateProgress() {
+    const all = document.querySelectorAll('.checkbox-result');
+    const checked = document.querySelectorAll('.checkbox-result.checked');
+    const pct = all.length ? Math.round((checked.length / all.length) * 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = pct + '%';
+    document.getElementById('totalTc').textContent = all.length;
+}
+
+// Save/Load state
+function saveState() {
+    const states = [];
+    document.querySelectorAll('.checkbox-result').forEach((el, i) => {
+        states.push(el.classList.contains('checked') ? 1 : 0);
+    });
+    localStorage.setItem('testManualState', JSON.stringify(states));
+}
+
+function loadState() {
+    const saved = localStorage.getItem('testManualState');
+    if (saved) {
+        const states = JSON.parse(saved);
+        document.querySelectorAll('.checkbox-result').forEach((el, i) => {
+            if (states[i]) el.classList.add('checked');
+        });
+    }
+    updateProgress();
+}
+
+// Active nav tracking
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            const link = document.querySelector(`a[href="#${entry.target.id}"]`);
+            if (link) link.classList.add('active');
+        }
+    });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+document.querySelectorAll('.section-anchor').forEach(s => observer.observe(s));
+
+// Init
+loadState();
+</script>
+
+</body>
+</html>

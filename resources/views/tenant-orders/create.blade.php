@@ -153,14 +153,14 @@
 <script>
     function orderForm() {
         return {
-            allProducts: @json($products->map(fn($p) => [
-                'id' => $p->id,
-                'name' => $p->name,
-                'sku' => $p->sku,
-                'barcode' => $p->barcode,
-                'price' => $p->wholesale_price > 0 ? $p->wholesale_price : $p->retail_price,
-                'category_id' => $p->category_id,
-                'category_name' => $p->category?->name,
+            allProducts: @json($products - > map(fn($p) => [
+                'id' => $p - > id,
+                'name' => $p - > name,
+                'sku' => $p - > sku,
+                'barcode' => $p - > barcode,
+                'price' => $p - > wholesale_price > 0 ? $p - > wholesale_price : $p - > retail_price,
+                'category_id' => $p - > category_id,
+                'category_name' => $p - > category ? - > name,
             ])),
             filteredProducts: [],
             cart: [],

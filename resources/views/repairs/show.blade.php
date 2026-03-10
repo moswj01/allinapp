@@ -19,46 +19,67 @@ $statusNames = \App\Models\Repair::getStatuses();
 @endphp
 
 <div class="space-y-6" x-data="{ editing: {{ $errors->any() ? 'true' : 'false' }} }">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">{{ $repair->repair_number }}</h2>
-            <p class="text-gray-500">
-                สร้างเมื่อ {{ $repair->created_at->format('d/m/Y H:i') }}
-                โดย {{ $repair->receivedBy->name ?? 'N/A' }}
-            </p>
-        </div>
-        <div class="flex items-center space-x-3">
-            <span class="px-4 py-2 text-sm font-semibold rounded-full border-2 {{ $statusColors[$repair->status] ?? 'bg-gray-100' }}">
-                {{ $statusNames[$repair->status] ?? $repair->status }}
-            </span>
-            <a href="{{ route('repairs.receipt', $repair) }}" target="_blank" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                <i class="fas fa-print mr-2"></i>ใบรับเครื่อง
-            </a>
-            @if(in_array($repair->status, ['completed', 'delivered']))
-            <a href="{{ route('repairs.invoice', ['repair' => $repair, 'type' => 'receipt']) }}" target="_blank" class="px-4 py-2 border border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors">
-                <i class="fas fa-receipt mr-2"></i>ใบเสร็จ
-            </a>
-            <a href="{{ route('repairs.invoice', ['repair' => $repair, 'type' => 'tax_invoice']) }}" target="_blank" class="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors">
-                <i class="fas fa-file-invoice mr-2"></i>ใบกำกับภาษี
-            </a>
-            @endif
-            <!-- Toggle edit mode -->
-            <button x-show="!editing" x-on:click="editing = true" type="button"
-                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                <i class="fas fa-edit mr-2"></i>แก้ไข
-            </button>
-            <button x-show="editing" x-on:click="editing = false" type="button"
-                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                <i class="fas fa-times mr-2"></i>ยกเลิกแก้ไข
-            </button>
-            <form action="{{ route('repairs.destroy', $repair) }}" method="POST" onsubmit="return confirm('ยืนยันลบงานซ่อม {{ $repair->repair_number }}? ข้อมูลทั้งหมดจะถูกลบถาวร')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
-                    <i class="fas fa-trash-alt mr-2"></i>ลบ
+    <!-- Breadcrumb -->
+    <nav class="flex items-center text-sm text-gray-500 mb-2">
+        <a href="{{ route('repairs.index') }}" class="hover:text-indigo-600 transition-colors">
+            <i class="fas fa-wrench mr-1"></i>งานซ่อม
+        </a>
+        <i class="fas fa-chevron-right mx-2 text-xs text-gray-400"></i>
+        <span class="text-gray-900 font-medium">{{ $repair->repair_number }}</span>
+    </nav>
+
+    <!-- Sticky Header -->
+    <div class="sticky top-0 z-30 bg-gray-100 -mx-6 px-6 py-4 border-b border-gray-200 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{{ route('repairs.index') }}" class="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 text-gray-600 hover:bg-white hover:text-indigo-600 transition-colors" title="กลับไปรายการงานซ่อม">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ $repair->repair_number }}</h2>
+                    <p class="text-gray-500 text-sm">
+                        สร้างเมื่อ {{ $repair->created_at->format('d/m/Y H:i') }}
+                        โดย {{ $repair->receivedBy->name ?? 'N/A' }}
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="px-4 py-2 text-sm font-semibold rounded-full border-2 {{ $statusColors[$repair->status] ?? 'bg-gray-100' }}">
+                    {{ $statusNames[$repair->status] ?? $repair->status }}
+                </span>
+                <a href="{{ route('repairs.receipt', $repair) }}" target="_blank" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-print mr-2"></i>ใบรับเครื่อง
+                </a>
+                @if(in_array($repair->status, ['completed', 'delivered']))
+                <a href="{{ route('repairs.invoice', ['repair' => $repair, 'type' => 'receipt']) }}" target="_blank" class="px-4 py-2 border border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors">
+                    <i class="fas fa-receipt mr-2"></i>ใบเสร็จ
+                </a>
+                <a href="{{ route('repairs.invoice', ['repair' => $repair, 'type' => 'tax_invoice']) }}" target="_blank" class="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors">
+                    <i class="fas fa-file-invoice mr-2"></i>ใบกำกับภาษี
+                </a>
+                @endif
+                <!-- Edit / Cancel / Save buttons - all in same location -->
+                <button x-show="!editing" x-on:click="editing = true" type="button"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                    <i class="fas fa-edit mr-2"></i>แก้ไข
                 </button>
-            </form>
+                <button x-show="editing" x-cloak x-on:click="editing = false" type="button"
+                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-times mr-2"></i>ยกเลิกแก้ไข
+                </button>
+                <button x-show="editing" x-cloak type="button"
+                    x-on:click="$refs.editForm.submit()"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-save mr-2"></i>บันทึก
+                </button>
+                <form action="{{ route('repairs.destroy', $repair) }}" method="POST" onsubmit="return confirm('ยืนยันลบงานซ่อม {{ $repair->repair_number }}? ข้อมูลทั้งหมดจะถูกลบถาวร')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+                        <i class="fas fa-trash-alt mr-2"></i>ลบ
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -422,14 +443,14 @@ $statusNames = \App\Models\Repair::getStatuses();
                         placeholder="หมายเหตุสำหรับพนักงาน (ไม่แสดงให้ลูกค้า)">{{ old('internal_notes', $repair->internal_notes) }}</textarea>
                 </div>
 
-                <!-- Save Button - EDIT ONLY -->
-                <div x-show="editing" class="flex items-center justify-end space-x-3">
+                <!-- Save Button - now in sticky header, keep a secondary save at bottom for convenience -->
+                <div x-show="editing" x-cloak class="flex items-center justify-end space-x-3">
                     <button type="button" x-on:click="editing = false"
                         class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                        ยกเลิก
+                        <i class="fas fa-times mr-2"></i>ยกเลิกแก้ไข
                     </button>
                     <button type="submit"
-                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center">
+                        class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center">
                         <i class="fas fa-save mr-2"></i>
                         บันทึกการเปลี่ยนแปลง
                     </button>

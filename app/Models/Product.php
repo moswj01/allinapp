@@ -13,6 +13,21 @@ class Product extends Model
 {
     use BelongsToTenant;
 
+    /**
+     * Convert empty barcode/sku to null to avoid unique constraint violations.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Product $product) {
+            if ($product->barcode === '' || $product->barcode === null) {
+                $product->barcode = null;
+            }
+            if ($product->sku === '' || $product->sku === null) {
+                $product->sku = null;
+            }
+        });
+    }
+
     protected $attributes = [
         'cost' => 0,
         'retail_price' => 0,

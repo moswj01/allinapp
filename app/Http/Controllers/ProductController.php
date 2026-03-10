@@ -383,9 +383,9 @@ class ProductController extends Controller
             return redirect()->back()->with('error', 'ไฟล์ CSV ว่างเปล่า');
         }
 
-        // Clean BOM from first column
-        $header[0] = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $header[0]);
-        $header = array_map('trim', array_map('strtolower', $header));
+        // Clean BOM (EF BB BF) from first column — only strip the 3-byte BOM, not all high bytes
+        $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
+        $header = array_map(fn($h) => strtolower(trim(preg_replace('/[\x00-\x1F]/', '', $h))), $header);
 
         $requiredCols = ['sku', 'name', 'retail_price'];
         foreach ($requiredCols as $col) {
@@ -451,21 +451,29 @@ class ProductController extends Controller
                     }
                 }
 
+                // Helper: parse number (handles commas, spaces, currency symbols)
+                $parseNum = function ($val, $default = 0) {
+                    if ($val === null || $val === '') return $default;
+                    // Remove commas, spaces, currency symbols (฿, B, $)
+                    $cleaned = preg_replace('/[฿\$B\s,]/', '', $val);
+                    return is_numeric($cleaned) ? floatval($cleaned) : $default;
+                };
+
                 // Build product data
                 $productData = [
                     'sku' => $data['sku'],
-                    'barcode' => $data['barcode'] ?? null,
+                    'barcode' => !empty($data['barcode']) ? $data['barcode'] : null,
                     'name' => $data['name'],
                     'category_id' => $categoryId,
                     'supplier_id' => $supplierId,
                     'branch_id' => $branchId,
-                    'description' => $data['description'] ?? null,
-                    'unit' => $data['unit'] ?? 'ชิ้น',
-                    'cost' => floatval($data['cost'] ?? 0),
-                    'retail_price' => floatval($data['retail_price'] ?? 0),
-                    'wholesale_price' => floatval($data['wholesale_price'] ?? 0),
-                    'vip_price' => floatval($data['vip_price'] ?? 0),
-                    'partner_price' => floatval($data['partner_price'] ?? 0),
+                    'description' => !empty($data['description']) ? $data['description'] : null,
+                    'unit' => !empty($data['unit']) ? $data['unit'] : 'ชิ้น',
+                    'cost' => $parseNum($data['cost'] ?? null),
+                    'retail_price' => $parseNum($data['retail_price'] ?? null),
+                    'wholesale_price' => $parseNum($data['wholesale_price'] ?? null),
+                    'vip_price' => $parseNum($data['vip_price'] ?? null),
+                    'partner_price' => $parseNum($data['partner_price'] ?? null),
                     'reorder_point' => intval($data['reorder_point'] ?? 5),
                     'is_active' => true,
                 ];
