@@ -66,6 +66,14 @@
                     <i class="fas fa-shopping-cart w-5 mr-3"></i>
                     <span x-show="sidebarOpen">ออเดอร์จากร้านค้า</span>
                 </a>
+                <a href="{{ route('superadmin.plan-requests.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('superadmin.plan-requests.*') ? 'bg-amber-600 text-white' : 'text-gray-300 hover:bg-gray-800' }} relative">
+                    <i class="fas fa-exchange-alt w-5 mr-3"></i>
+                    <span x-show="sidebarOpen">คำขอเปลี่ยนแพ็กเกจ</span>
+                    @php $pendingPlanRequests = \App\Models\PlanChangeRequest::where('status','pending')->count(); @endphp
+                    @if($pendingPlanRequests > 0)
+                    <span class="absolute right-2 top-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center" x-show="sidebarOpen">{{ $pendingPlanRequests }}</span>
+                    @endif
+                </a>
 
                 <div class="pt-3 border-t border-gray-800 mt-3">
                     <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-3 text-sm rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
@@ -134,84 +142,89 @@
     @stack('scripts')
 
     <script>
-    // Universal Table Sorting
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('table').forEach(function(table) {
-            var thead = table.querySelector('thead');
-            var tbody = table.querySelector('tbody');
-            if (!thead || !tbody) return;
+        // Universal Table Sorting
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('table').forEach(function(table) {
+                var thead = table.querySelector('thead');
+                var tbody = table.querySelector('tbody');
+                if (!thead || !tbody) return;
 
-            var headers = thead.querySelectorAll('th');
-            headers.forEach(function(th, colIdx) {
-                var text = th.textContent.trim();
-                if (!text || text === 'จัดการ' || text === '#' || th.querySelector('input[type=checkbox]')) return;
+                var headers = thead.querySelectorAll('th');
+                headers.forEach(function(th, colIdx) {
+                    var text = th.textContent.trim();
+                    if (!text || text === 'จัดการ' || text === '#' || th.querySelector('input[type=checkbox]')) return;
 
-                th.style.cursor = 'pointer';
-                th.style.userSelect = 'none';
-                th.style.position = 'relative';
-                th.style.paddingRight = '24px';
+                    th.style.cursor = 'pointer';
+                    th.style.userSelect = 'none';
+                    th.style.position = 'relative';
+                    th.style.paddingRight = '24px';
 
-                var indicator = document.createElement('span');
-                indicator.className = 'sort-indicator';
-                indicator.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;color:#9ca3af;transition:color 0.15s;';
-                indicator.innerHTML = '&#x25B2;&#x25BC;';
-                th.appendChild(indicator);
+                    var indicator = document.createElement('span');
+                    indicator.className = 'sort-indicator';
+                    indicator.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;color:#9ca3af;transition:color 0.15s;';
+                    indicator.innerHTML = '&#x25B2;&#x25BC;';
+                    th.appendChild(indicator);
 
-                th.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    var rows = Array.from(tbody.querySelectorAll('tr'));
-                    if (rows.length < 2) return;
+                    th.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        var rows = Array.from(tbody.querySelectorAll('tr'));
+                        if (rows.length < 2) return;
 
-                    var asc = th.getAttribute('data-sort') !== 'asc';
+                        var asc = th.getAttribute('data-sort') !== 'asc';
 
-                    headers.forEach(function(h) {
-                        h.removeAttribute('data-sort');
-                        var si = h.querySelector('.sort-indicator');
-                        if (si) { si.innerHTML = '&#x25B2;&#x25BC;'; si.style.color = '#9ca3af'; }
+                        headers.forEach(function(h) {
+                            h.removeAttribute('data-sort');
+                            var si = h.querySelector('.sort-indicator');
+                            if (si) {
+                                si.innerHTML = '&#x25B2;&#x25BC;';
+                                si.style.color = '#9ca3af';
+                            }
+                        });
+
+                        th.setAttribute('data-sort', asc ? 'asc' : 'desc');
+                        indicator.innerHTML = asc ? '&#x25B2;' : '&#x25BC;';
+                        indicator.style.color = '#6366f1';
+
+                        rows.sort(function(a, b) {
+                            var cellA = a.children[colIdx];
+                            var cellB = b.children[colIdx];
+                            if (!cellA || !cellB) return 0;
+
+                            var valA = (cellA.getAttribute('data-sort-value') || cellA.textContent).trim();
+                            var valB = (cellB.getAttribute('data-sort-value') || cellB.textContent).trim();
+
+                            var numA = parseFloat(valA.replace(/[^\d.\-]/g, ''));
+                            var numB = parseFloat(valB.replace(/[^\d.\-]/g, ''));
+                            if (!isNaN(numA) && !isNaN(numB) && valA !== '' && valB !== '') {
+                                return asc ? numA - numB : numB - numA;
+                            }
+
+                            var dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/;
+                            var matchA = valA.match(dateRegex);
+                            var matchB = valB.match(dateRegex);
+                            if (matchA && matchB) {
+                                var dA = new Date(matchA[3], matchA[2] - 1, matchA[1]);
+                                var dB = new Date(matchB[3], matchB[2] - 1, matchB[1]);
+                                return asc ? dA - dB : dB - dA;
+                            }
+
+                            return asc ? valA.localeCompare(valB, 'th') : valB.localeCompare(valA, 'th');
+                        });
+
+                        rows.forEach(function(row) {
+                            tbody.appendChild(row);
+                        });
                     });
 
-                    th.setAttribute('data-sort', asc ? 'asc' : 'desc');
-                    indicator.innerHTML = asc ? '&#x25B2;' : '&#x25BC;';
-                    indicator.style.color = '#6366f1';
-
-                    rows.sort(function(a, b) {
-                        var cellA = a.children[colIdx];
-                        var cellB = b.children[colIdx];
-                        if (!cellA || !cellB) return 0;
-
-                        var valA = (cellA.getAttribute('data-sort-value') || cellA.textContent).trim();
-                        var valB = (cellB.getAttribute('data-sort-value') || cellB.textContent).trim();
-
-                        var numA = parseFloat(valA.replace(/[^\d.\-]/g, ''));
-                        var numB = parseFloat(valB.replace(/[^\d.\-]/g, ''));
-                        if (!isNaN(numA) && !isNaN(numB) && valA !== '' && valB !== '') {
-                            return asc ? numA - numB : numB - numA;
-                        }
-
-                        var dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/;
-                        var matchA = valA.match(dateRegex);
-                        var matchB = valB.match(dateRegex);
-                        if (matchA && matchB) {
-                            var dA = new Date(matchA[3], matchA[2]-1, matchA[1]);
-                            var dB = new Date(matchB[3], matchB[2]-1, matchB[1]);
-                            return asc ? dA - dB : dB - dA;
-                        }
-
-                        return asc ? valA.localeCompare(valB, 'th') : valB.localeCompare(valA, 'th');
+                    th.addEventListener('mouseenter', function() {
+                        if (!th.getAttribute('data-sort')) indicator.style.color = '#6b7280';
                     });
-
-                    rows.forEach(function(row) { tbody.appendChild(row); });
-                });
-
-                th.addEventListener('mouseenter', function() {
-                    if (!th.getAttribute('data-sort')) indicator.style.color = '#6b7280';
-                });
-                th.addEventListener('mouseleave', function() {
-                    if (!th.getAttribute('data-sort')) indicator.style.color = '#9ca3af';
+                    th.addEventListener('mouseleave', function() {
+                        if (!th.getAttribute('data-sort')) indicator.style.color = '#9ca3af';
+                    });
                 });
             });
         });
-    });
     </script>
 </body>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Plan;
 use App\Models\Tenant;
 use App\Models\TenantInvoice;
+use App\Models\PlanChangeRequest;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Branch;
@@ -143,50 +144,77 @@ class TenantRegistrationController extends Controller
         $plans = Plan::active()->ordered()->get();
         $invoices = $tenant->invoices()->latest()->paginate(10);
         $usage = $tenant->getUsageSummary();
+        $pendingRequest = PlanChangeRequest::where('tenant_id', $tenant->id)
+            ->where('status', 'pending')
+            ->with('requestedPlan', 'currentPlan')
+            ->first();
 
-        return view('tenant.billing', compact('tenant', 'plans', 'invoices', 'usage'));
+        return view('tenant.billing', compact('tenant', 'plans', 'invoices', 'usage', 'pendingRequest'));
     }
 
     /**
-     * Change plan
+     * Request plan change (requires Super Admin approval)
      */
     public function changePlan(Request $request)
     {
         $validated = $request->validate([
             'plan_id' => 'required|exists:plans,id',
+            'note' => 'nullable|string|max:500',
         ]);
 
         $tenant = Tenant::current();
         if (!$tenant) abort(403);
 
         $newPlan = Plan::findOrFail($validated['plan_id']);
-        $tenant->update(['plan_id' => $newPlan->id]);
+        $currentPlan = $tenant->plan;
 
-        // Create invoice for upgrade
-        if ($newPlan->price > 0) {
-            TenantInvoice::create([
-                'tenant_id' => $tenant->id,
-                'plan_id' => $newPlan->id,
-                'invoice_number' => TenantInvoice::generateNumber(),
-                'amount' => $newPlan->price,
-                'tax_amount' => $newPlan->price * 0.07,
-                'total_amount' => $newPlan->price * 1.07,
-                'status' => 'pending',
-                'billing_cycle' => 'monthly',
-                'period_start' => now(),
-                'period_end' => now()->addMonth(),
-            ]);
+        // Check if already has a pending request
+        $existingRequest = PlanChangeRequest::where('tenant_id', $tenant->id)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existingRequest) {
+            return back()->with('error', 'คุณมีคำขอเปลี่ยนแพ็กเกจที่รออนุมัติอยู่แล้ว กรุณารอการตอบกลับจากผู้ดูแลระบบ');
         }
 
-        // Activate if was trial
-        if ($tenant->isTrial()) {
-            $tenant->update([
-                'status' => Tenant::STATUS_ACTIVE,
-                'subscription_starts_at' => now(),
-                'subscription_ends_at' => now()->addMonth(),
-            ]);
-        }
+        // Determine type
+        $type = $newPlan->price > $currentPlan->price ? 'upgrade' : 'downgrade';
+        $amount = $newPlan->price;
+        $taxAmount = $amount * 0.07;
+        $totalAmount = $amount + $taxAmount;
 
-        return back()->with('success', 'เปลี่ยนแพ็กเกจเป็น "' . $newPlan->name . '" เรียบร้อย');
+        PlanChangeRequest::create([
+            'tenant_id' => $tenant->id,
+            'current_plan_id' => $currentPlan->id,
+            'requested_plan_id' => $newPlan->id,
+            'requested_by' => auth()->id(),
+            'type' => $type,
+            'status' => 'pending',
+            'amount' => $amount,
+            'tax_amount' => $taxAmount,
+            'total_amount' => $totalAmount,
+            'tenant_note' => $validated['note'] ?? null,
+        ]);
+
+        $typeLabel = $type === 'upgrade' ? 'อัพเกรด' : 'ดาวน์เกรด';
+        return back()->with('success', "ส่งคำขอ{$typeLabel}เป็น \"{$newPlan->name}\" เรียบร้อย กรุณารอการอนุมัติจากผู้ดูแลระบบ");
+    }
+
+    /**
+     * Cancel pending plan change request
+     */
+    public function cancelPlanRequest(int $id)
+    {
+        $tenant = Tenant::current();
+        if (!$tenant) abort(403);
+
+        $request = PlanChangeRequest::where('tenant_id', $tenant->id)
+            ->where('id', $id)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        $request->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'ยกเลิกคำขอเปลี่ยนแพ็กเกจเรียบร้อย');
     }
 }

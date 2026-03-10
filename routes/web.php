@@ -32,6 +32,7 @@ use App\Http\Controllers\SuperAdmin\TenantController;
 use App\Http\Controllers\SuperAdmin\PlanController;
 use App\Http\Controllers\TenantOrderController;
 use App\Http\Controllers\SuperAdmin\TenantOrderController as SuperAdminTenantOrderController;
+use App\Http\Controllers\SuperAdmin\PlanChangeRequestController;
 
 // =====================================================
 // SaaS Landing & Registration (Public)
@@ -70,6 +71,12 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::post('/tenant-orders/{tenantOrder}/confirm', [SuperAdminTenantOrderController::class, 'confirm'])->name('tenant-orders.confirm');
     Route::post('/tenant-orders/{tenantOrder}/ship', [SuperAdminTenantOrderController::class, 'ship'])->name('tenant-orders.ship');
     Route::post('/tenant-orders/{tenantOrder}/cancel', [SuperAdminTenantOrderController::class, 'cancel'])->name('tenant-orders.cancel');
+
+    // Plan Change Requests
+    Route::get('/plan-requests', [PlanChangeRequestController::class, 'index'])->name('plan-requests.index');
+    Route::patch('/plan-requests/{id}/approve', [PlanChangeRequestController::class, 'approve'])->name('plan-requests.approve');
+    Route::patch('/plan-requests/{id}/reject', [PlanChangeRequestController::class, 'reject'])->name('plan-requests.reject');
+    Route::patch('/plan-requests/{id}/mark-paid', [PlanChangeRequestController::class, 'markPaid'])->name('plan-requests.mark-paid');
 });
 
 // =====================================================
@@ -79,6 +86,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Billing / Subscription
     Route::get('/billing', [TenantRegistrationController::class, 'billing'])->name('billing');
     Route::post('/billing/change-plan', [TenantRegistrationController::class, 'changePlan'])->name('billing.change-plan');
+    Route::delete('/billing/cancel-plan-request/{id}', [TenantRegistrationController::class, 'cancelPlanRequest'])->name('billing.cancel-plan-request');
 });
 
 // Protected Routes

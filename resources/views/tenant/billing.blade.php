@@ -112,10 +112,51 @@
         </div>
     </div>
 
+    <!-- Pending Request Banner -->
+    @if($pendingRequest)
+    <div class="bg-amber-50 border-2 border-amber-200 rounded-xl p-5">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-clock text-amber-600 text-xl"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="font-bold text-amber-800">คำขอเปลี่ยนแพ็กเกจรออนุมัติ</h3>
+                <p class="text-sm text-amber-700 mt-1">
+                    {{ $pendingRequest->type === 'upgrade' ? 'อัพเกรด' : 'ดาวน์เกรด' }}จาก
+                    <b>{{ $pendingRequest->currentPlan->name }}</b> เป็น
+                    <b>{{ $pendingRequest->requestedPlan->name }}</b>
+                    · ยอดชำระ <b>฿{{ number_format($pendingRequest->total_amount, 2) }}</b>
+                </p>
+                <p class="text-xs text-amber-600 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>กรุณารอการอนุมัติจากผู้ดูแลระบบ กรุณาชำระเงินก่อนเพื่อให้การอนุมัติรวดเร็วขึ้น
+                </p>
+                @if(!$pendingRequest->is_paid)
+                <div class="mt-3 p-3 bg-white rounded-lg border border-amber-200">
+                    <p class="text-sm font-semibold text-gray-800 mb-1"><i class="fas fa-university text-indigo-500 mr-1"></i>ข้อมูลการชำระเงิน</p>
+                    <p class="text-xs text-gray-600">ธนาคาร: กสิกรไทย (KBank)</p>
+                    <p class="text-xs text-gray-600">เลขบัญชี: XXX-X-XXXXX-X</p>
+                    <p class="text-xs text-gray-600">ชื่อบัญชี: บจก. ออลอินเซอร์วิส</p>
+                    <p class="text-xs text-gray-500 mt-1">* หลังโอนเงินแล้ว กรุณาแจ้งผู้ดูแลระบบ</p>
+                </div>
+                @else
+                <p class="text-sm text-green-600 mt-2"><i class="fas fa-check-circle mr-1"></i>ชำระเงินแล้ว · รออนุมัติ</p>
+                @endif
+            </div>
+            <form action="{{ route('billing.cancel-plan-request', $pendingRequest->id) }}" method="POST" onsubmit="return confirm('ยกเลิกคำขอเปลี่ยนแพ็กเกจนี้?')">
+                @csrf @method('DELETE')
+                <button type="submit" class="px-3 py-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition">
+                    <i class="fas fa-times mr-1"></i>ยกเลิกคำขอ
+                </button>
+            </form>
+        </div>
+    </div>
+    @endif
+
     <!-- Change Plan -->
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div class="p-6 border-b border-gray-100">
             <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-exchange-alt text-indigo-500 mr-2"></i>เปลี่ยนแพ็กเกจ</h2>
+            <p class="text-sm text-gray-500 mt-1">เลือกแพ็กเกจที่ต้องการ คำขอจะถูกส่งให้ผู้ดูแลระบบอนุมัติ</p>
         </div>
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-{{ min(count($plans), 4) }} gap-4">
@@ -151,15 +192,24 @@
                     </div>
 
                     @if($tenant->plan_id !== $plan->id)
+                    @if($pendingRequest)
+                    <div class="mt-4">
+                        <button disabled class="w-full py-2 px-4 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed">
+                            <i class="fas fa-clock mr-1"></i>มีคำขอรออนุมัติ
+                        </button>
+                    </div>
+                    @else
                     <form action="{{ route('billing.change-plan') }}" method="POST" class="mt-4">
                         @csrf
                         <input type="hidden" name="plan_id" value="{{ $plan->id }}">
                         <button type="submit" class="w-full py-2 px-4 rounded-lg text-sm font-medium transition
-                            {{ $plan->price > $tenant->plan->price ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}"
-                            onclick="return confirm('{{ $plan->price > $tenant->plan->price ? 'ยืนยันอัพเกรดเป็น ' . $plan->name . '?' : 'ยืนยันดาวน์เกรดเป็น ' . $plan->name . '?' }}')">
-                            {{ $plan->price > $tenant->plan->price ? 'อัพเกรด' : 'ดาวน์เกรด' }}
+                                {{ $plan->price > $tenant->plan->price ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}"
+                            onclick="return confirm('{{ $plan->price > $tenant->plan->price ? 'ส่งคำขออัพเกรดเป็น ' . $plan->name . '? (ต้องรอการอนุมัติจากผู้ดูแลระบบ)' : 'ส่งคำขอดาวน์เกรดเป็น ' . $plan->name . '? (ต้องรอการอนุมัติจากผู้ดูแลระบบ)' }}')">
+                            <i class="fas fa-paper-plane mr-1"></i>
+                            {{ $plan->price > $tenant->plan->price ? 'ขออัพเกรด' : 'ขอดาวน์เกรด' }}
                         </button>
                     </form>
+                    @endif
                     @endif
                 </div>
                 @endforeach
