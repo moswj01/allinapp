@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Plan;
 use App\Models\Tenant;
+use App\Models\TenantInvoice;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Branch;
