@@ -448,7 +448,7 @@ class RepairController extends Controller
         $user = $request->user();
         $branchId = $user->branch_id;
 
-        $query = RepairPart::with(['repair', 'product', 'requestedBy', 'approvedBy', 'rejectedBy'])
+        $query = RepairPart::with(['repair.customer', 'repair.technician', 'product', 'requestedBy', 'approvedBy', 'rejectedBy'])
             ->whereHas('repair', function ($q) use ($user, $branchId) {
                 if (!$user->isOwner() && !$user->isAdmin()) {
                     $q->where('branch_id', $branchId);

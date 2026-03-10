@@ -8,11 +8,7 @@
     showStatusModal: false,
     selectedRepairId: null,
     selectedStatus: '',
-    statusAction: '',
-    showDetailModal: false,
-    detail: null,
-    deviceTypeMap: { smartphone: 'สมาร์ทโฟน', tablet: 'แท็บเล็ต', smartwatch: 'Smart Watch', laptop: 'โน้ตบุ๊ก', other: 'อื่นๆ' },
-    openDetail(r) { this.detail = r; this.showDetailModal = true; }
+    statusAction: ''
 }" class="space-y-4">
     <!-- Header Actions -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -111,49 +107,7 @@
                     ];
                     @endphp
                     @forelse($repairs as $repair)
-                    @php
-                    $repairJson = [
-                        'id' => $repair->id,
-                        'repair_number' => $repair->repair_number,
-                        'status' => $repair->status,
-                        'status_label' => $statuses[$repair->status] ?? $repair->status,
-                        'status_color' => $statusColors[$repair->status] ?? 'bg-gray-100 text-gray-800',
-                        'priority' => $repair->priority,
-                        'customer_name' => $repair->customer->name ?? $repair->customer_name,
-                        'customer_phone' => $repair->customer_phone,
-                        'customer_line_id' => $repair->customer_line_id,
-                        'customer_email' => $repair->customer_email,
-                        'device_type' => $repair->device_type,
-                        'device_brand' => $repair->device_brand,
-                        'device_model' => $repair->device_model,
-                        'device_color' => $repair->device_color,
-                        'device_serial' => $repair->device_serial,
-                        'device_imei' => $repair->device_imei,
-                        'problem_description' => $repair->problem_description,
-                        'diagnosis' => $repair->diagnosis,
-                        'solution' => $repair->solution,
-                        'technician_name' => $repair->technician->name ?? null,
-                        'received_by_name' => $repair->receivedBy->name ?? null,
-                        'estimated_cost' => $repair->estimated_cost,
-                        'service_cost' => $repair->service_cost,
-                        'parts_cost' => $repair->parts_cost,
-                        'discount' => $repair->discount,
-                        'total_cost' => $repair->total_cost,
-                        'deposit' => $repair->deposit,
-                        'paid_amount' => $repair->paid_amount,
-                        'payment_status' => $repair->payment_status,
-                        'received_at' => $repair->received_at?->format('d/m/Y H:i'),
-                        'estimated_completion' => $repair->estimated_completion?->format('d/m/Y'),
-                        'completed_at' => $repair->completed_at?->format('d/m/Y H:i'),
-                        'delivered_at' => $repair->delivered_at?->format('d/m/Y H:i'),
-                        'warranty_days' => $repair->warranty_days,
-                        'internal_notes' => $repair->internal_notes,
-                        'show_url' => route('repairs.show', $repair),
-                        'status_url' => route('repairs.status', $repair),
-                        'invoice_url' => route('repairs.invoice', ['repair' => $repair, 'type' => 'receipt']),
-                    ];
-                    @endphp
-                    <tr class="hover:bg-gray-50 cursor-pointer" @click="openDetail({{ Js::from($repairJson) }})">
+                    <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{{ route('repairs.show', $repair) }}'">>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <span class="text-sm font-bold text-indigo-600">
                                 {{ $repair->repair_number }}
@@ -177,7 +131,7 @@
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap text-center">
                             <button type="button"
-                                @click.stop="selectedRepairId = {{ $repair->id }}; selectedStatus = '{{ $repair->status }}'; statusAction = '{{ route('repairs.status', $repair) }}'; showStatusModal = true"
+                                onclick="event.stopPropagation(); " x-data x-on:click="selectedRepairId = {{ $repair->id }}; selectedStatus = '{{ $repair->status }}'; statusAction = '{{ route('repairs.status', $repair) }}'; showStatusModal = true"
                                 class="px-2 py-1 text-xs font-medium rounded-full cursor-pointer hover:opacity-80 transition-opacity {{ $statusColors[$repair->status] ?? 'bg-gray-100' }}">
                                 {{ $statuses[$repair->status] ?? $repair->status }}
                             </button>
@@ -200,7 +154,7 @@
                             {{ $repair->received_at->format('d/m/Y') }}
                             <span class="text-xs text-gray-400 block">{{ $repair->received_at->diffForHumans() }}</span>
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-right" @click.stop>
+                        <td class="px-4 py-3 whitespace-nowrap text-right" onclick="event.stopPropagation()">
                             <div class="flex justify-end space-x-2">
                                 <a href="{{ route('repairs.show', $repair) }}" class="text-indigo-400 hover:text-indigo-600" title="แก้ไข">
                                     <i class="fas fa-edit"></i>
@@ -284,219 +238,7 @@
         </div>
     </div>
 
-    <!-- Repair Detail Modal -->
-    <div x-show="showDetailModal" x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        @click.self="showDetailModal = false"
-        @keydown.escape.window="showDetailModal = false">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col" @click.stop>
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 1rem 1rem 0 0;">
-                <div>
-                    <h3 class="text-lg font-bold text-white" x-text="detail?.repair_number"></h3>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-white/20 text-white" x-text="detail?.status_label"></span>
-                        <span class="text-xs text-indigo-200" x-text="detail?.received_at"></span>
-                    </div>
-                </div>
-                <button @click="showDetailModal = false" class="text-white/70 hover:text-white transition-colors">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-
-            <!-- Modal Body -->
-            <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-
-                <!-- ข้อมูลลูกค้า -->
-                <div>
-                    <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                        <i class="fas fa-user text-indigo-500 mr-1"></i> ข้อมูลลูกค้า
-                    </h4>
-                    <div class="grid grid-cols-2 gap-x-6 gap-y-2">
-                        <div>
-                            <p class="text-xs text-gray-400">ชื่อลูกค้า</p>
-                            <p class="text-sm font-medium text-gray-900" x-text="detail?.customer_name || '-'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">เบอร์โทร</p>
-                            <p class="text-sm font-medium text-gray-900" x-text="detail?.customer_phone || '-'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">LINE ID</p>
-                            <p class="text-sm text-gray-700" x-text="detail?.customer_line_id || '-'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">อีเมล</p>
-                            <p class="text-sm text-gray-700" x-text="detail?.customer_email || '-'"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="border-gray-100">
-
-                <!-- ข้อมูลเครื่อง -->
-                <div>
-                    <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                        <i class="fas fa-mobile-alt text-blue-500 mr-1"></i> ข้อมูลเครื่อง
-                    </h4>
-                    <div class="grid grid-cols-2 gap-x-6 gap-y-2">
-                        <div>
-                            <p class="text-xs text-gray-400">ประเภท</p>
-                            <p class="text-sm font-medium text-gray-900" x-text="deviceTypeMap[detail?.device_type] || detail?.device_type || '-'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">ยี่ห้อ / รุ่น</p>
-                            <p class="text-sm font-medium text-gray-900" x-text="(detail?.device_brand || '') + ' ' + (detail?.device_model || '')"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">สี</p>
-                            <p class="text-sm text-gray-700" x-text="detail?.device_color || '-'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">IMEI / S/N</p>
-                            <p class="text-sm text-gray-700" x-text="detail?.device_imei || detail?.device_serial || '-'"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="border-gray-100">
-
-                <!-- อาการ / การซ่อม -->
-                <div>
-                    <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                        <i class="fas fa-wrench text-orange-500 mr-1"></i> อาการ / การซ่อม
-                    </h4>
-                    <div class="space-y-3">
-                        <div>
-                            <p class="text-xs text-gray-400">อาการเสีย / ปัญหา</p>
-                            <p class="text-sm text-gray-900 whitespace-pre-line" x-text="detail?.problem_description || '-'"></p>
-                        </div>
-                        <template x-if="detail?.diagnosis">
-                            <div>
-                                <p class="text-xs text-gray-400">วินิจฉัย</p>
-                                <p class="text-sm text-gray-700 whitespace-pre-line" x-text="detail?.diagnosis"></p>
-                            </div>
-                        </template>
-                        <template x-if="detail?.solution">
-                            <div>
-                                <p class="text-xs text-gray-400">วิธีแก้ไข</p>
-                                <p class="text-sm text-gray-700 whitespace-pre-line" x-text="detail?.solution"></p>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <hr class="border-gray-100">
-
-                <!-- ช่าง & วันที่ -->
-                <div>
-                    <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                        <i class="fas fa-calendar text-green-500 mr-1"></i> ข้อมูลงาน
-                    </h4>
-                    <div class="grid grid-cols-2 gap-x-6 gap-y-2">
-                        <div>
-                            <p class="text-xs text-gray-400">ช่างซ่อม</p>
-                            <p class="text-sm font-medium" x-text="detail?.technician_name || 'ยังไม่มอบหมาย'" :class="detail?.technician_name ? 'text-gray-900' : 'text-orange-500'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">ผู้รับเครื่อง</p>
-                            <p class="text-sm text-gray-700" x-text="detail?.received_by_name || '-'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">วันที่รับ</p>
-                            <p class="text-sm text-gray-700" x-text="detail?.received_at || '-'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">กำหนดเสร็จ</p>
-                            <p class="text-sm text-gray-700" x-text="detail?.estimated_completion || '-'"></p>
-                        </div>
-                        <template x-if="detail?.completed_at">
-                            <div>
-                                <p class="text-xs text-gray-400">ซ่อมเสร็จ</p>
-                                <p class="text-sm text-green-600 font-medium" x-text="detail?.completed_at"></p>
-                            </div>
-                        </template>
-                        <template x-if="detail?.delivered_at">
-                            <div>
-                                <p class="text-xs text-gray-400">ส่งคืน</p>
-                                <p class="text-sm text-emerald-600 font-medium" x-text="detail?.delivered_at"></p>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <hr class="border-gray-100">
-
-                <!-- ค่าใช้จ่าย -->
-                <div>
-                    <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                        <i class="fas fa-coins text-yellow-500 mr-1"></i> ค่าใช้จ่าย
-                    </h4>
-                    <div class="bg-gray-50 rounded-xl p-4">
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">ค่าบริการ</span>
-                                <span class="text-gray-900" x-text="'฿' + Number(detail?.service_cost || 0).toLocaleString()"></span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">ค่าอะไหล่</span>
-                                <span class="text-gray-900" x-text="'฿' + Number(detail?.parts_cost || 0).toLocaleString()"></span>
-                            </div>
-                            <template x-if="detail?.discount > 0">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">ส่วนลด</span>
-                                    <span class="text-red-500" x-text="'-฿' + Number(detail?.discount || 0).toLocaleString()"></span>
-                                </div>
-                            </template>
-                            <div class="flex justify-between text-sm font-bold pt-2 border-t border-gray-200">
-                                <span class="text-gray-700">รวมทั้งสิ้น</span>
-                                <span class="text-indigo-600 text-base" x-text="'฿' + Number(detail?.total_cost || 0).toLocaleString()"></span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">มัดจำ</span>
-                                <span class="text-gray-700" x-text="'฿' + Number(detail?.deposit || 0).toLocaleString()"></span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">ชำระแล้ว</span>
-                                <span class="text-green-600 font-medium" x-text="'฿' + Number(detail?.paid_amount || 0).toLocaleString()"></span>
-                            </div>
-                            <div class="flex justify-between text-sm font-semibold">
-                                <span class="text-gray-700">คงเหลือ</span>
-                                <span class="text-red-600" x-text="'฿' + Number((detail?.total_cost || 0) - (detail?.paid_amount || 0)).toLocaleString()"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- หมายเหตุ -->
-                <template x-if="detail?.internal_notes">
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                            <i class="fas fa-sticky-note text-gray-400 mr-1"></i> หมายเหตุภายใน
-                        </h4>
-                        <p class="text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg border border-yellow-100 whitespace-pre-line" x-text="detail?.internal_notes"></p>
-                    </div>
-                </template>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between" style="border-radius: 0 0 1rem 1rem;">
-                <div class="flex items-center gap-2">
-                    <a :href="detail?.show_url" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                        <i class="fas fa-edit mr-1"></i> แก้ไข
-                    </a>
-                    <template x-if="detail && ['completed','delivered'].includes(detail.status)">
-                        <a :href="detail?.invoice_url" target="_blank" class="px-4 py-2 text-sm border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors">
-                            <i class="fas fa-receipt mr-1"></i> ใบเสร็จ
-                        </a>
-                    </template>
-                </div>
-                <button @click="showDetailModal = false" class="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    ปิด
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Repair Detail Modal removed — moved to part-approvals -->
 </div>
 <div id="importModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4">
