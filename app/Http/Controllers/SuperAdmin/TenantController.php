@@ -153,8 +153,9 @@ class TenantController extends Controller
     {
         $tenant = Tenant::withoutGlobalScopes()->findOrFail($id);
         $plans = Plan::active()->ordered()->get();
+        $users = User::withoutGlobalScopes()->where('tenant_id', $id)->with('role', 'branch')->get();
 
-        return view('superadmin.tenants.edit', compact('tenant', 'plans'));
+        return view('superadmin.tenants.edit', compact('tenant', 'plans', 'users'));
     }
 
     public function update(Request $request, int $id)
@@ -171,13 +172,30 @@ class TenantController extends Controller
             'plan_id' => 'required|exists:plans,id',
             'status' => 'required|in:trial,active,suspended,cancelled',
             'suspension_reason' => 'nullable|string',
+            'user_passwords' => 'nullable|array',
+            'user_passwords.*' => 'nullable|string|min:8',
         ]);
 
-        $tenant->update($validated);
+        $tenant->update(collect($validated)->except('user_passwords')->toArray());
 
         // Update is_active based on status
         $tenant->is_active = in_array($validated['status'], ['active', 'trial']);
         $tenant->save();
+
+        // Reset user passwords if provided
+        if (!empty($validated['user_passwords'])) {
+            foreach ($validated['user_passwords'] as $userId => $password) {
+                if (!empty($password)) {
+                    $user = User::withoutGlobalScopes()
+                        ->where('tenant_id', $id)
+                        ->where('id', $userId)
+                        ->first();
+                    if ($user) {
+                        $user->update(['password' => Hash::make($password)]);
+                    }
+                }
+            }
+        }
 
         return redirect()->route('superadmin.tenants.show', $id)
             ->with('success', 'อัปเดตข้อมูลร้านค้าเรียบร้อย');

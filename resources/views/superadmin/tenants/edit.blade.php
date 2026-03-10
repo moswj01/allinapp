@@ -63,6 +63,29 @@
             </div>
         </div>
 
+        <!-- Password Reset Section -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-key text-amber-500 mr-2"></i>รีเซ็ตรหัสผ่านผู้ใช้</h3>
+            <p class="text-sm text-gray-500 mb-4">กรอกรหัสผ่านใหม่เฉพาะผู้ใช้ที่ต้องการเปลี่ยน (อย่างน้อย 8 ตัวอักษร) เว้นว่างหากไม่ต้องการเปลี่ยน</p>
+            <div class="space-y-3">
+                @foreach($users as $user)
+                <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                    <div class="flex-shrink-0 w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-sm">
+                        {{ mb_substr($user->name, 0, 1) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate">{{ $user->name }}</p>
+                        <p class="text-xs text-gray-500">{{ $user->email }} · {{ $user->role?->name ?? '-' }}</p>
+                    </div>
+                    <div class="flex-shrink-0 w-64">
+                        <input type="password" name="user_passwords[{{ $user->id }}]" placeholder="รหัสผ่านใหม่..." class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" autocomplete="new-password">
+                        @error('user_passwords.' . $user->id) <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
         <div class="flex items-center justify-between">
             <a href="{{ route('superadmin.tenants.show', $tenant->id) }}" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
                 <i class="fas fa-arrow-left mr-2"></i>ยกเลิก
