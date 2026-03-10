@@ -47,10 +47,10 @@
                     @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <p class="font-semibold text-gray-800">{{ $req->tenant->name }}</p>
-                            <p class="text-xs text-gray-500">{{ $req->requestedByUser->name ?? '-' }}</p>
+                            <p class="font-semibold text-gray-800">{{ $req->tenant?->name ?? '-' }}</p>
+                            <p class="text-xs text-gray-500">{{ $req->requestedByUser?->name ?? '-' }}</p>
                         </td>
-                        <td class="px-4 py-3 text-gray-600">{{ $req->currentPlan->name }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ $req->currentPlan?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-center">
                             <span class="px-2 py-1 rounded-full text-xs font-medium {{ $req->type === 'upgrade' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600' }}">
                                 <i class="fas fa-arrow-{{ $req->type === 'upgrade' ? 'up text-indigo-500' : 'down text-gray-400' }} mr-1"></i>
@@ -58,7 +58,7 @@
                             </span>
                         </td>
                         <td class="px-4 py-3">
-                            <span class="font-semibold text-indigo-600">{{ $req->requestedPlan->name }}</span>
+                            <span class="font-semibold text-indigo-600">{{ $req->requestedPlan?->name ?? '-' }}</span>
                         </td>
                         <td class="px-4 py-3 text-right font-medium text-gray-800">
                             ฿{{ number_format($req->total_amount, 2) }}
