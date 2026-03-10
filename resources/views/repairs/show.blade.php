@@ -568,12 +568,11 @@ $statusNames = \App\Models\Repair::getStatuses();
                                 <div>
                                     <label class="form-label">ประเภทเครื่อง <span class="text-red-400">*</span></label>
                                     <select name="device_type" x-bind:required="editing" class="form-input">
-                                        <option value="มือถือ" {{ old('device_type', $repair->device_type) == 'มือถือ' ? 'selected' : '' }}>มือถือ</option>
-                                        <option value="แท็บเล็ต" {{ old('device_type', $repair->device_type) == 'แท็บเล็ต' ? 'selected' : '' }}>แท็บเล็ต</option>
-                                        <option value="โน๊ตบุ๊ค" {{ old('device_type', $repair->device_type) == 'โน๊ตบุ๊ค' ? 'selected' : '' }}>โน๊ตบุ๊ค</option>
-                                        <option value="คอมพิวเตอร์" {{ old('device_type', $repair->device_type) == 'คอมพิวเตอร์' ? 'selected' : '' }}>คอมพิวเตอร์</option>
-                                        <option value="นาฬิกา" {{ old('device_type', $repair->device_type) == 'นาฬิกา' ? 'selected' : '' }}>นาฬิกา</option>
-                                        <option value="อื่นๆ" {{ old('device_type', $repair->device_type) == 'อื่นๆ' ? 'selected' : '' }}>อื่นๆ</option>
+                                        <option value="smartphone" {{ old('device_type', $repair->device_type) == 'smartphone' ? 'selected' : '' }}>สมาร์ทโฟน</option>
+                                        <option value="tablet" {{ old('device_type', $repair->device_type) == 'tablet' ? 'selected' : '' }}>แท็บเล็ต</option>
+                                        <option value="smartwatch" {{ old('device_type', $repair->device_type) == 'smartwatch' ? 'selected' : '' }}>Smart Watch</option>
+                                        <option value="laptop" {{ old('device_type', $repair->device_type) == 'laptop' ? 'selected' : '' }}>โน้ตบุ๊ก</option>
+                                        <option value="other" {{ old('device_type', $repair->device_type) == 'other' ? 'selected' : '' }}>อื่นๆ</option>
                                     </select>
                                 </div>
                                 <div>
