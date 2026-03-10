@@ -47,39 +47,33 @@
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @if(isset($settings[$groupKey]))
-                @foreach($settings[$groupKey] as $setting)
-                <div class="{{ in_array($setting->key, ['receipt_header', 'receipt_footer', 'quotation_terms', 'company_address']) ? 'md:col-span-2' : '' }}">
+                @foreach($definitions[$groupKey] as $key => $def)
+                <div class="{{ ($def['textarea'] ?? false) ? 'md:col-span-2' : '' }}">
                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                        {{ $settingLabels[$setting->key] ?? str_replace('_', ' ', ucfirst($setting->key)) }}
+                        {{ $def['label'] }}
                     </label>
 
-                    @if($setting->type === 'boolean')
-                    <select name="settings[{{ $setting->key }}]"
+                    @if($def['type'] === 'boolean')
+                    <select name="settings[{{ $key }}]"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        <option value="1" {{ $setting->value ? 'selected' : '' }}>เปิด</option>
-                        <option value="0" {{ !$setting->value ? 'selected' : '' }}>ปิด</option>
+                        <option value="1" {{ ($existingSettings[$key] ?? '') == '1' ? 'selected' : '' }}>เปิด</option>
+                        <option value="0" {{ ($existingSettings[$key] ?? '') != '1' ? 'selected' : '' }}>ปิด</option>
                     </select>
-                    @elseif(in_array($setting->key, ['receipt_header', 'receipt_footer', 'quotation_terms', 'company_address']))
-                    <textarea name="settings[{{ $setting->key }}]" rows="3"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">{{ old("settings.{$setting->key}", $setting->value) }}</textarea>
-                    @elseif($setting->type === 'integer' || $setting->type === 'float')
-                    <input type="number" name="settings[{{ $setting->key }}]"
-                        value="{{ old("settings.{$setting->key}", $setting->value) }}"
-                        step="{{ $setting->type === 'float' ? '0.01' : '1' }}"
+                    @elseif($def['textarea'] ?? false)
+                    <textarea name="settings[{{ $key }}]" rows="3"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">{{ old("settings.{$key}", $existingSettings[$key] ?? '') }}</textarea>
+                    @elseif($def['type'] === 'integer' || $def['type'] === 'float')
+                    <input type="number" name="settings[{{ $key }}]"
+                        value="{{ old("settings.{$key}", $existingSettings[$key] ?? '') }}"
+                        step="{{ $def['type'] === 'float' ? '0.01' : '1' }}"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                     @else
-                    <input type="text" name="settings[{{ $setting->key }}]"
-                        value="{{ old("settings.{$setting->key}", $setting->value) }}"
+                    <input type="text" name="settings[{{ $key }}]"
+                        value="{{ old("settings.{$key}", $existingSettings[$key] ?? '') }}"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                     @endif
                 </div>
                 @endforeach
-                @else
-                <div class="md:col-span-2">
-                    <p class="text-sm text-gray-400">ยังไม่มีการตั้งค่าในหมวดนี้</p>
-                </div>
-                @endif
             </div>
         </div>
         @endforeach

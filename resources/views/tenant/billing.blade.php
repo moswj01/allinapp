@@ -132,11 +132,34 @@
                 </p>
                 @if(!$pendingRequest->is_paid)
                 <div class="mt-3 p-3 bg-white rounded-lg border border-amber-200">
-                    <p class="text-sm font-semibold text-gray-800 mb-1"><i class="fas fa-university text-indigo-500 mr-1"></i>ข้อมูลการชำระเงิน</p>
-                    <p class="text-xs text-gray-600">ธนาคาร: กสิกรไทย (KBank)</p>
-                    <p class="text-xs text-gray-600">เลขบัญชี: XXX-X-XXXXX-X</p>
-                    <p class="text-xs text-gray-600">ชื่อบัญชี: บจก. ออลอินเซอร์วิส</p>
+                    <p class="text-sm font-semibold text-gray-800 mb-2"><i class="fas fa-university text-indigo-500 mr-1"></i>ข้อมูลการชำระเงิน</p>
+                    @if(!empty($paymentSettings['payment_bank_name']))
+                    <p class="text-xs text-gray-600">ธนาคาร: <span class="font-medium text-gray-800">{{ $paymentSettings['payment_bank_name'] }}</span></p>
+                    @endif
+                    @if(!empty($paymentSettings['payment_account_number']))
+                    <p class="text-xs text-gray-600">เลขบัญชี: <span class="font-medium text-gray-800">{{ $paymentSettings['payment_account_number'] }}</span></p>
+                    @endif
+                    @if(!empty($paymentSettings['payment_account_name']))
+                    <p class="text-xs text-gray-600">ชื่อบัญชี: <span class="font-medium text-gray-800">{{ $paymentSettings['payment_account_name'] }}</span></p>
+                    @endif
+                    @if(!empty($paymentSettings['payment_promptpay']))
+                    <p class="text-xs text-gray-600">พร้อมเพย์: <span class="font-medium text-gray-800">{{ $paymentSettings['payment_promptpay'] }}</span>
+                        @if(!empty($paymentSettings['payment_promptpay_name'])) ({{ $paymentSettings['payment_promptpay_name'] }}) @endif
+                    </p>
+                    @endif
+                    @if(!empty($paymentSettings['payment_qrcode_url']))
+                    <div class="mt-2 mb-2">
+                        <img src="{{ $paymentSettings['payment_qrcode_url'] }}" alt="QR Code" class="max-w-[150px] rounded">
+                    </div>
+                    @endif
+                    @if(!empty($paymentSettings['payment_line_id']))
+                    <p class="text-xs text-gray-600"><i class="fab fa-line text-green-500 mr-1"></i>LINE: <span class="font-medium text-gray-800">{{ $paymentSettings['payment_line_id'] }}</span></p>
+                    @endif
+                    @if(!empty($paymentSettings['payment_note']))
+                    <p class="text-xs text-gray-500 mt-1">* {{ $paymentSettings['payment_note'] }}</p>
+                    @else
                     <p class="text-xs text-gray-500 mt-1">* หลังโอนเงินแล้ว กรุณาแจ้งผู้ดูแลระบบ</p>
+                    @endif
                 </div>
                 @else
                 <p class="text-sm text-green-600 mt-2"><i class="fas fa-check-circle mr-1"></i>ชำระเงินแล้ว · รออนุมัติ</p>

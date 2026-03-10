@@ -33,6 +33,7 @@ use App\Http\Controllers\SuperAdmin\PlanController;
 use App\Http\Controllers\TenantOrderController;
 use App\Http\Controllers\SuperAdmin\TenantOrderController as SuperAdminTenantOrderController;
 use App\Http\Controllers\SuperAdmin\PlanChangeRequestController;
+use App\Http\Controllers\SuperAdmin\SystemSettingController;
 
 // =====================================================
 // SaaS Landing & Registration (Public)
@@ -71,6 +72,10 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::post('/tenant-orders/{tenantOrder}/confirm', [SuperAdminTenantOrderController::class, 'confirm'])->name('tenant-orders.confirm');
     Route::post('/tenant-orders/{tenantOrder}/ship', [SuperAdminTenantOrderController::class, 'ship'])->name('tenant-orders.ship');
     Route::post('/tenant-orders/{tenantOrder}/cancel', [SuperAdminTenantOrderController::class, 'cancel'])->name('tenant-orders.cancel');
+
+    // System Settings
+    Route::get('/settings', [SystemSettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SystemSettingController::class, 'update'])->name('settings.update');
 
     // Plan Change Requests
     Route::get('/plan-requests', [PlanChangeRequestController::class, 'index'])->name('plan-requests.index');

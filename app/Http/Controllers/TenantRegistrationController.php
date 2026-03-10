@@ -6,6 +6,7 @@ use App\Models\Plan;
 use App\Models\Tenant;
 use App\Models\TenantInvoice;
 use App\Models\PlanChangeRequest;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Branch;
@@ -149,7 +150,9 @@ class TenantRegistrationController extends Controller
             ->with('requestedPlan', 'currentPlan')
             ->first();
 
-        return view('tenant.billing', compact('tenant', 'plans', 'invoices', 'usage', 'pendingRequest'));
+        $paymentSettings = SystemSetting::getByGroup('payment');
+
+        return view('tenant.billing', compact('tenant', 'plans', 'invoices', 'usage', 'pendingRequest', 'paymentSettings'));
     }
 
     /**

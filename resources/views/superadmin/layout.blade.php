@@ -75,6 +75,11 @@
                     @endif
                 </a>
 
+                <a href="{{ route('superadmin.settings.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('superadmin.settings.*') ? 'bg-amber-600 text-white' : 'text-gray-300 hover:bg-gray-800' }}">
+                    <i class="fas fa-cog w-5 mr-3"></i>
+                    <span x-show="sidebarOpen">ตั้งค่าการชำระเงิน</span>
+                </a>
+
                 <div class="pt-3 border-t border-gray-800 mt-3">
                     <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-3 text-sm rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
                         <i class="fas fa-arrow-left w-5 mr-3"></i>
