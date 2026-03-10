@@ -91,6 +91,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Billing / Subscription
     Route::get('/billing', [TenantRegistrationController::class, 'billing'])->name('billing');
     Route::post('/billing/change-plan', [TenantRegistrationController::class, 'changePlan'])->name('billing.change-plan');
+    Route::post('/billing/notify-payment/{id}', [TenantRegistrationController::class, 'notifyPayment'])->name('billing.notify-payment');
     Route::delete('/billing/cancel-plan-request/{id}', [TenantRegistrationController::class, 'cancelPlanRequest'])->name('billing.cancel-plan-request');
 });
 

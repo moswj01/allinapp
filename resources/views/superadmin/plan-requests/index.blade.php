@@ -68,6 +68,25 @@
                             <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                                 <i class="fas fa-check mr-1"></i>ชำระแล้ว
                             </span>
+                            @elseif($req->payment_proof)
+                            <div class="flex flex-col items-center gap-1">
+                                <a href="{{ asset($req->payment_proof) }}" target="_blank" class="group relative">
+                                    <img src="{{ asset($req->payment_proof) }}" alt="สลิป" class="w-10 h-10 object-cover rounded border border-indigo-200 group-hover:opacity-80 transition">
+                                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-search text-white" style="font-size: 7px"></i>
+                                    </span>
+                                </a>
+                                @php $pmLabels = ['bank_transfer' => 'โอน', 'promptpay' => 'เพย์', 'line' => 'LINE']; @endphp
+                                <span class="text-xs text-indigo-600 font-medium">{{ $pmLabels[$req->payment_method] ?? $req->payment_method }}</span>
+                                <span class="text-xs text-gray-400">{{ $req->paid_at?->format('d/m H:i') }}</span>
+                                <form action="{{ route('superadmin.plan-requests.mark-paid', $req->id) }}" method="POST" class="inline" onsubmit="return confirm('ยืนยันว่าตรวจสอบหลักฐานแล้ว?')">
+                                    @csrf @method('PATCH')
+                                    <input type="hidden" name="payment_method" value="{{ $req->payment_method }}">
+                                    <button type="submit" class="px-2 py-0.5 bg-green-500 text-white hover:bg-green-600 rounded text-xs font-medium transition mt-1">
+                                        <i class="fas fa-check mr-1"></i>ยืนยัน
+                                    </button>
+                                </form>
+                            </div>
                             @elseif($req->status === 'pending')
                             <form action="{{ route('superadmin.plan-requests.mark-paid', $req->id) }}" method="POST" class="inline" onsubmit="return confirm('ยืนยันว่าร้านค้าชำระเงินแล้ว?')">
                                 @csrf @method('PATCH')
@@ -98,6 +117,8 @@
                                         <i class="fas fa-check mr-1"></i>อนุมัติ
                                     </button>
                                 </form>
+                                @elseif($req->payment_proof)
+                                <span class="text-xs text-indigo-500"><i class="fas fa-receipt mr-1"></i>รอตรวจสลิป</span>
                                 @else
                                 <span class="text-xs text-gray-400">รอชำระ</span>
                                 @endif

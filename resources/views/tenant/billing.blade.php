@@ -130,8 +130,34 @@
                 <p class="text-xs text-amber-600 mt-2">
                     <i class="fas fa-info-circle mr-1"></i>กรุณารอการอนุมัติจากผู้ดูแลระบบ กรุณาชำระเงินก่อนเพื่อให้การอนุมัติรวดเร็วขึ้น
                 </p>
-                @if(!$pendingRequest->is_paid)
-                <div class="mt-3 p-3 bg-white rounded-lg border border-amber-200">
+                @if($pendingRequest->is_paid)
+                {{-- Super Admin confirmed payment --}}
+                <p class="text-sm text-green-600 mt-2"><i class="fas fa-check-circle mr-1"></i>ยืนยันชำระเงินแล้ว · รออนุมัติ</p>
+
+                @elseif($pendingRequest->payment_proof)
+                {{-- Tenant submitted proof, waiting for Super Admin confirmation --}}
+                <div class="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <p class="text-sm font-semibold text-green-800 mb-2">
+                        <i class="fas fa-check-circle text-green-500 mr-1"></i>แจ้งชำระเงินแล้ว · รอตรวจสอบ
+                    </p>
+                    <div class="flex items-start gap-3">
+                        <a href="{{ asset($pendingRequest->payment_proof) }}" target="_blank" class="flex-shrink-0">
+                            <img src="{{ asset($pendingRequest->payment_proof) }}" alt="สลิปการโอน" class="w-20 h-20 object-cover rounded-lg border border-green-200 hover:opacity-80 transition">
+                        </a>
+                        <div class="text-xs text-green-700 space-y-1">
+                            @php
+                            $methodLabels = ['bank_transfer' => 'โอนผ่านธนาคาร', 'promptpay' => 'พร้อมเพย์', 'line' => 'LINE'];
+                            @endphp
+                            <p>วิธีชำระ: <span class="font-medium">{{ $methodLabels[$pendingRequest->payment_method] ?? $pendingRequest->payment_method }}</span></p>
+                            <p>แจ้งเมื่อ: <span class="font-medium">{{ $pendingRequest->paid_at?->format('d/m/Y H:i') }}</span></p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-green-600 mt-2"><i class="fas fa-hourglass-half mr-1"></i>ผู้ดูแลระบบกำลังตรวจสอบหลักฐาน</p>
+                </div>
+
+                @else
+                {{-- No proof yet — show payment info + notification form --}}
+                <div class="mt-3 p-3 bg-white rounded-lg border border-amber-200" x-data="{ showForm: false }">
                     <p class="text-sm font-semibold text-gray-800 mb-2"><i class="fas fa-university text-indigo-500 mr-1"></i>ข้อมูลการชำระเงิน</p>
                     @if(!empty($paymentSettings['payment_bank_name']))
                     <p class="text-xs text-gray-600">ธนาคาร: <span class="font-medium text-gray-800">{{ $paymentSettings['payment_bank_name'] }}</span></p>
@@ -157,12 +183,63 @@
                     @endif
                     @if(!empty($paymentSettings['payment_note']))
                     <p class="text-xs text-gray-500 mt-1">* {{ $paymentSettings['payment_note'] }}</p>
-                    @else
-                    <p class="text-xs text-gray-500 mt-1">* หลังโอนเงินแล้ว กรุณาแจ้งผู้ดูแลระบบ</p>
                     @endif
+
+                    {{-- Toggle button for payment notification form --}}
+                    <div class="mt-3 pt-3 border-t border-amber-100">
+                        <button type="button" @click="showForm = !showForm"
+                            class="w-full py-2 px-4 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-receipt"></i>
+                            <span x-text="showForm ? 'ซ่อนฟอร์ม' : 'แจ้งชำระเงิน'"></span>
+                        </button>
+                    </div>
+
+                    {{-- Payment notification form --}}
+                    <div x-show="showForm" x-cloak x-transition class="mt-3 pt-3 border-t border-amber-100">
+                        <form action="{{ route('billing.notify-payment', $pendingRequest->id) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="space-y-3">
+                                {{-- Payment method --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">วิธีชำระเงิน <span class="text-red-500">*</span></label>
+                                    <select name="payment_method" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option value="">-- เลือกวิธีชำระ --</option>
+                                        <option value="bank_transfer">โอนผ่านธนาคาร</option>
+                                        <option value="promptpay">พร้อมเพย์</option>
+                                        <option value="line">LINE</option>
+                                    </select>
+                                </div>
+
+                                {{-- Payment slip --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">แนบสลิปการโอน <span class="text-red-500">*</span></label>
+                                    <input type="file" name="payment_slip" accept="image/*" required
+                                        class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                                    <p class="text-xs text-gray-400 mt-1">รองรับไฟล์ภาพ (JPG, PNG) ขนาดไม่เกิน 5MB</p>
+                                </div>
+
+                                {{-- Payment date --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">วันเวลาที่โอน</label>
+                                    <input type="text" name="payment_date" placeholder="เช่น 15/01/2025 14:30" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+
+                                {{-- Note --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">หมายเหตุ</label>
+                                    <textarea name="payment_note" rows="2" placeholder="ข้อมูลเพิ่มเติม..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                                </div>
+
+                                {{-- Submit --}}
+                                <button type="submit" class="w-full py-2.5 px-4 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition flex items-center justify-center gap-2"
+                                    onclick="return confirm('ยืนยันแจ้งชำระเงิน?')">
+                                    <i class="fas fa-paper-plane"></i>
+                                    ส่งแจ้งชำระเงิน
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                @else
-                <p class="text-sm text-green-600 mt-2"><i class="fas fa-check-circle mr-1"></i>ชำระเงินแล้ว · รออนุมัติ</p>
                 @endif
             </div>
             <form action="{{ route('billing.cancel-plan-request', $pendingRequest->id) }}" method="POST" onsubmit="return confirm('ยกเลิกคำขอเปลี่ยนแพ็กเกจนี้?')">

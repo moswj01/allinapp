@@ -204,6 +204,57 @@ class TenantRegistrationController extends Controller
     }
 
     /**
+     * Notify payment for a pending plan change request
+     */
+    public function notifyPayment(Request $request, int $id)
+    {
+        $tenant = Tenant::current();
+        if (!$tenant) abort(403);
+
+        $planRequest = PlanChangeRequest::where('tenant_id', $tenant->id)
+            ->where('id', $id)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'payment_method' => 'required|in:bank_transfer,promptpay,line',
+            'payment_slip' => 'required|image|max:5120',
+            'payment_date' => 'nullable|string|max:50',
+            'payment_note' => 'nullable|string|max:500',
+        ]);
+
+        // Upload slip image
+        $file = $request->file('payment_slip');
+        $filename = 'slip_' . $id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = 'uploads/payment-proofs';
+        $file->move(public_path($path), $filename);
+
+        $updateData = [
+            'payment_method' => $validated['payment_method'],
+            'payment_proof' => $path . '/' . $filename,
+            'paid_at' => now(),
+        ];
+
+        // Append payment note to tenant_note
+        if (!empty($validated['payment_note'])) {
+            $existingNote = $planRequest->tenant_note;
+            $paymentNote = '[แจ้งชำระ] ' . $validated['payment_note'];
+            if (!empty($validated['payment_date'])) {
+                $paymentNote .= ' (โอนเมื่อ ' . $validated['payment_date'] . ')';
+            }
+            $updateData['tenant_note'] = $existingNote ? $existingNote . ' | ' . $paymentNote : $paymentNote;
+        } elseif (!empty($validated['payment_date'])) {
+            $existingNote = $planRequest->tenant_note;
+            $paymentNote = '[แจ้งชำระ] โอนเมื่อ ' . $validated['payment_date'];
+            $updateData['tenant_note'] = $existingNote ? $existingNote . ' | ' . $paymentNote : $paymentNote;
+        }
+
+        $planRequest->update($updateData);
+
+        return back()->with('success', 'แจ้งชำระเงินเรียบร้อย กรุณารอการตรวจสอบจากผู้ดูแลระบบ');
+    }
+
+    /**
      * Cancel pending plan change request
      */
     public function cancelPlanRequest(int $id)
