@@ -27,14 +27,11 @@ class RepairController extends Controller
         // Status filter
         if ($status = $request->input('status')) {
             $query->where('status', $status);
-        } else {
-            // Default: exclude delivered & cancelled
-            $query->whereNotIn('status', [Repair::STATUS_DELIVERED, Repair::STATUS_CANCELLED]);
         }
 
-        // Priority filter
-        if ($priority = $request->input('priority')) {
-            $query->where('priority', $priority);
+        // Device type filter
+        if ($deviceType = $request->input('device_type')) {
+            $query->where('device_type', $deviceType);
         }
 
         // Search

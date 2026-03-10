@@ -35,20 +35,21 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
                 <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                    <option value="">ทั้งหมด (ไม่รวมยกเลิก/ส่งคืน)</option>
+                    <option value="">ทั้งหมด</option>
                     @foreach($statuses as $key => $name)
                     <option value="{{ $key }}" {{ request('status') === $key ? 'selected' : '' }}>{{ $name }}</option>
                     @endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ความเร่งด่วน</label>
-                <select name="priority" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-sm font-medium text-gray-700 mb-1">ประเภทเครื่อง</label>
+                <select name="device_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                     <option value="">ทั้งหมด</option>
-                    <option value="urgent" {{ request('priority') === 'urgent' ? 'selected' : '' }}>ด่วน</option>
-                    <option value="high" {{ request('priority') === 'high' ? 'selected' : '' }}>สูง</option>
-                    <option value="normal" {{ request('priority') === 'normal' ? 'selected' : '' }}>ปกติ</option>
-                    <option value="low" {{ request('priority') === 'low' ? 'selected' : '' }}>ต่ำ</option>
+                    <option value="smartphone" {{ request('device_type') === 'smartphone' ? 'selected' : '' }}>สมาร์ทโฟน</option>
+                    <option value="tablet" {{ request('device_type') === 'tablet' ? 'selected' : '' }}>แท็บเล็ต</option>
+                    <option value="smartwatch" {{ request('device_type') === 'smartwatch' ? 'selected' : '' }}>Smart Watch</option>
+                    <option value="laptop" {{ request('device_type') === 'laptop' ? 'selected' : '' }}>โน้ตบุ๊ก</option>
+                    <option value="other" {{ request('device_type') === 'other' ? 'selected' : '' }}>อื่นๆ</option>
                 </select>
             </div>
             <div class="flex items-end gap-2">
