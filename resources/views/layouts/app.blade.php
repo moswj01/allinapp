@@ -416,19 +416,6 @@
                 </div>
             </header>
 
-            <!-- Super Admin Switch-Back Banner -->
-            @if(session('super_admin_id'))
-            <div class="bg-amber-500 text-amber-900 px-6 py-2 flex items-center justify-between text-sm">
-                <span>
-                    <i class="fas fa-user-secret mr-2"></i>
-                    คุณกำลังเข้าใช้งานในฐานะ <strong>{{ Auth::user()->name }}</strong> ({{ $currentTenant->name ?? '' }})
-                </span>
-                <a href="{{ route('superadmin.switch-back') }}" class="px-3 py-1 bg-amber-700 text-white rounded-lg text-xs font-medium hover:bg-amber-800">
-                    <i class="fas fa-arrow-left mr-1"></i>กลับไป Super Admin
-                </a>
-            </div>
-            @endif
-
             <!-- Trial Warning Banner -->
             @if(isset($currentTenant) && $currentTenant && $currentTenant->isTrial())
             @php $daysLeft = $currentTenant->daysLeftInTrial(); @endphp
