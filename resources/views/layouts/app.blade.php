@@ -315,8 +315,75 @@
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
                                 <i class="fas fa-bell text-xl"></i>
-                                <span class="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                                @if(isset($unreadNotificationCount) && $unreadNotificationCount > 0)
+                                <span class="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{{ $unreadNotificationCount > 9 ? '9+' : $unreadNotificationCount }}</span>
+                                @endif
                             </button>
+
+                            <!-- Notification Dropdown -->
+                            <div x-show="open"
+                                @click.away="open = false"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 transform scale-95"
+                                x-transition:enter-end="opacity-100 transform scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 transform scale-100"
+                                x-transition:leave-end="opacity-0 transform scale-95"
+                                x-cloak
+                                class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg overflow-hidden z-50 border border-gray-100">
+                                <div class="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                                    <h3 class="text-sm font-semibold text-gray-900">การแจ้งเตือน</h3>
+                                    @if(isset($unreadNotificationCount) && $unreadNotificationCount > 0)
+                                    <form action="{{ route('notifications.read-all') }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">อ่านทั้งหมด</button>
+                                    </form>
+                                    @endif
+                                </div>
+                                <div class="max-h-72 overflow-y-auto">
+                                    @if(isset($recentNotifications) && $recentNotifications->count() > 0)
+                                    @foreach($recentNotifications as $notif)
+                                    <a href="{{ $notif->link ? route('notifications.read', $notif) : '#' }}"
+                                        @if(!$notif->link) onclick="event.preventDefault()" @endif
+                                        class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-50 {{ !$notif->is_read ? 'bg-blue-50/50' : '' }}">
+                                        <div class="flex items-start">
+                                            @php
+                                            $iconMap = [
+                                            'info' => 'fas fa-info-circle text-blue-500',
+                                            'success' => 'fas fa-check-circle text-green-500',
+                                            'warning' => 'fas fa-exclamation-triangle text-yellow-500',
+                                            'error' => 'fas fa-times-circle text-red-500',
+                                            'repair_assigned' => 'fas fa-tools text-indigo-500',
+                                            'repair_status_changed' => 'fas fa-sync text-blue-500',
+                                            'repair_completed' => 'fas fa-check-circle text-green-500',
+                                            'low_stock_alert' => 'fas fa-exclamation-triangle text-orange-500',
+                                            'payment_received' => 'fas fa-money-bill text-green-500',
+                                            ];
+                                            $nIcon = $iconMap[$notif->type] ?? 'fas fa-bell text-gray-400';
+                                            @endphp
+                                            <i class="{{ $nIcon }} text-sm mt-0.5 mr-3 flex-shrink-0"></i>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">{{ $notif->title }}</p>
+                                                <p class="text-xs text-gray-500 mt-0.5 truncate">{{ $notif->message }}</p>
+                                                <p class="text-xs text-gray-400 mt-1">{{ $notif->created_at->diffForHumans() }}</p>
+                                            </div>
+                                            @if(!$notif->is_read)
+                                            <span class="w-2 h-2 bg-blue-500 rounded-full mt-2 ml-2 flex-shrink-0"></span>
+                                            @endif
+                                        </div>
+                                    </a>
+                                    @endforeach
+                                    @else
+                                    <div class="px-4 py-8 text-center text-gray-400">
+                                        <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                                        <p class="text-sm">ไม่มีการแจ้งเตือน</p>
+                                    </div>
+                                    @endif
+                                </div>
+                                <a href="{{ route('notifications.index') }}" class="block text-center px-4 py-3 bg-gray-50 border-t border-gray-100 text-sm text-indigo-600 hover:text-indigo-800 font-medium hover:bg-gray-100 transition-colors">
+                                    ดูทั้งหมด <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                                </a>
+                            </div>
                         </div>
 
                         <!-- User Menu -->

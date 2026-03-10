@@ -18,7 +18,24 @@ class SettingsController extends Controller
 
         $settings = Setting::whereNull('branch_id')->get()->groupBy('group');
 
-        return view('settings.index', compact('groups', 'settings'));
+        $settingLabels = [
+            'company_name' => 'ชื่อบริษัท',
+            'company_address' => 'ที่อยู่',
+            'company_phone' => 'เบอร์โทร',
+            'company_email' => 'อีเมล',
+            'company_tax_id' => 'เลขผู้เสียภาษี',
+            'company_logo' => 'โลโก้ (URL)',
+            'default_tax_rate' => 'อัตราภาษีเริ่มต้น (%)',
+            'default_warranty_days' => 'วันรับประกันเริ่มต้น (วัน)',
+            'low_stock_threshold' => 'แจ้งเตือนสต๊อกต่ำ (ชิ้น)',
+            'receipt_header' => 'หัวใบเสร็จ',
+            'receipt_footer' => 'ท้ายใบเสร็จ',
+            'quotation_terms' => 'เงื่อนไขใบเสนอราคา',
+            'line_notify_token' => 'LINE Notify Token',
+            'sms_api_key' => 'SMS API Key',
+        ];
+
+        return view('settings.index', compact('groups', 'settings', 'settingLabels'));
     }
 
     public function update(Request $request)

@@ -28,8 +28,8 @@ class SettingSeeder extends Seeder
             ['group' => 'receipt', 'key' => Setting::QUOTATION_TERMS, 'value' => 'ใบเสนอราคานี้มีอายุ 7 วัน', 'type' => 'string'],
 
             // Integration Settings
-            ['group' => 'integration', 'key' => Setting::LINE_NOTIFY_TOKEN, 'value' => '', 'type' => 'string'],
-            ['group' => 'integration', 'key' => Setting::SMS_API_KEY, 'value' => '', 'type' => 'string'],
+            ['group' => 'integrations', 'key' => Setting::LINE_NOTIFY_TOKEN, 'value' => '', 'type' => 'string'],
+            ['group' => 'integrations', 'key' => Setting::SMS_API_KEY, 'value' => '', 'type' => 'string'],
         ];
 
         foreach ($settings as $setting) {
