@@ -91,15 +91,17 @@
                 <i class="fas fa-arrow-left mr-2"></i>ยกเลิก
             </a>
             <div class="flex items-center gap-3">
-                <form action="{{ route('superadmin.tenants.destroy', $tenant->id) }}" method="POST" onsubmit="return confirm('ต้องการลบร้านค้านี้?')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="px-4 py-2 text-sm text-red-600 hover:text-red-800"><i class="fas fa-trash mr-1"></i>ลบ</button>
-                </form>
+                <button type="button" onclick="document.getElementById('delete-tenant-form').submit()" class="px-4 py-2 text-sm text-red-600 hover:text-red-800"><i class="fas fa-trash mr-1"></i>ลบ</button>
                 <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
                     <i class="fas fa-save mr-2"></i>บันทึก
                 </button>
             </div>
         </div>
+    </form>
+
+    <!-- Delete form (outside main form to avoid nested forms) -->
+    <form id="delete-tenant-form" action="{{ route('superadmin.tenants.destroy', $tenant->id) }}" method="POST" onsubmit="return confirm('ต้องการลบร้านค้านี้?')">
+        @csrf @method('DELETE')
     </form>
 </div>
 @endsection
