@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class BranchController extends Controller
 {
@@ -24,8 +26,17 @@ class BranchController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        // Check plan limit
+        $tenant = Tenant::current();
+        if ($tenant && !$tenant->canAddBranch()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'จำนวนสาขาถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ',
+            ], 403);
+        }
+
         $validated = $request->validate([
-            'code' => 'nullable|string|max:255|unique:branches,code',
+            'code' => ['nullable', 'string', 'max:255', Rule::unique('branches', 'code')->where('tenant_id', Tenant::currentId())],
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:255',
@@ -61,7 +72,7 @@ class BranchController extends Controller
     public function update(Request $request, Branch $branch): JsonResponse
     {
         $validated = $request->validate([
-            'code' => 'nullable|string|max:255|unique:branches,code,' . $branch->id,
+            'code' => ['nullable', 'string', 'max:255', Rule::unique('branches', 'code')->where('tenant_id', $branch->tenant_id)->ignore($branch->id)],
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:255',

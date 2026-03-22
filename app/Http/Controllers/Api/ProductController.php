@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -35,6 +36,15 @@ class ProductController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        // Check plan limit
+        $tenant = Tenant::current();
+        if ($tenant && !$tenant->canAddProduct()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'จำนวนสินค้าถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'barcode' => 'nullable|string|max:100|unique:products,barcode',
             'name' => 'required|string|max:255',

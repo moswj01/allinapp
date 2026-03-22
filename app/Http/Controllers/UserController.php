@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Branch;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -59,6 +60,13 @@ class UserController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
+        // Check plan limit
+        $tenant = Tenant::current();
+        if ($tenant && !$tenant->canAddUser()) {
+            return redirect()->route('users.index')
+                ->with('error', 'จำนวนผู้ใช้ถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
+        }
+
         $roles = Role::orderBy('name')->get();
 
         // Non-owner can only create for their branch
@@ -85,6 +93,12 @@ class UserController extends Controller
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
+
+        // Check plan limit
+        $tenant = Tenant::current();
+        if ($tenant && !$tenant->canAddUser()) {
+            return back()->with('error', 'จำนวนผู้ใช้ถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
+        }
 
         // Validate branch access
         if (!$user->canAccessBranch($validated['branch_id'])) {

@@ -16,6 +16,7 @@
                 class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
                 <i class="fas fa-download mr-2"></i>Export CSV
             </a>
+            @if(Auth::user()->hasPermission('products.create'))
             <button onclick="document.getElementById('importModal').classList.remove('hidden')"
                 class="inline-flex items-center px-4 py-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors">
                 <i class="fas fa-file-csv mr-2"></i>Import CSV
@@ -23,6 +24,7 @@
             <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                 <i class="fas fa-plus mr-2"></i>เพิ่มสินค้าใหม่
             </a>
+            @endif
         </div>
     </div>
 
@@ -168,9 +170,12 @@
                                 <a href="{{ route('products.show', $product) }}" class="text-gray-400 hover:text-gray-600" title="ดู">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                @if(Auth::user()->hasPermission('products.edit'))
                                 <a href="{{ route('products.edit', $product) }}" class="text-blue-400 hover:text-blue-600" title="แก้ไข">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                @endif
+                                @if(Auth::user()->hasPermission('products.delete'))
                                 <form action="{{ route('products.destroy', $product) }}" method="POST" class="inline"
                                     onsubmit="return confirm('ต้องการลบสินค้านี้หรือไม่?')">
                                     @csrf
@@ -179,6 +184,7 @@
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -187,9 +193,11 @@
                         <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                             <i class="fas fa-box-open text-4xl mb-4"></i>
                             <p>ยังไม่มีสินค้า</p>
+                            @if(Auth::user()->hasPermission('products.create'))
                             <a href="{{ route('products.create') }}" class="mt-2 inline-block text-indigo-600 hover:underline">
                                 เพิ่มสินค้าใหม่
                             </a>
+                            @endif
                         </td>
                     </tr>
                     @endforelse

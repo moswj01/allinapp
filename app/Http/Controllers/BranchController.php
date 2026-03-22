@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class BranchController extends Controller
 {
@@ -32,6 +34,13 @@ class BranchController extends Controller
 
     public function create()
     {
+        // Check plan limit
+        $tenant = Tenant::current();
+        if ($tenant && !$tenant->canAddBranch()) {
+            return redirect()->route('branches.index')
+                ->with('error', 'จำนวนสาขาถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
+        }
+
         return view('branches.create');
     }
 
@@ -39,7 +48,7 @@ class BranchController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:10|unique:branches,code',
+            'code' => ['required', 'string', 'max:10', Rule::unique('branches', 'code')->where('tenant_id', Tenant::currentId())],
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
@@ -50,6 +59,12 @@ class BranchController extends Controller
         ]);
 
         $validated['is_active'] = $request->boolean('is_active', true);
+
+        // Check plan limit
+        $tenant = Tenant::current();
+        if ($tenant && !$tenant->canAddBranch()) {
+            return back()->with('error', 'จำนวนสาขาถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
+        }
 
         Branch::create($validated);
 
@@ -97,7 +112,7 @@ class BranchController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:10|unique:branches,code,' . $branch->id,
+            'code' => ['required', 'string', 'max:10', Rule::unique('branches', 'code')->where('tenant_id', $branch->tenant_id)->ignore($branch->id)],
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',

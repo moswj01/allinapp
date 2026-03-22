@@ -109,6 +109,7 @@
                     แดชบอร์ด
                 </a>
 
+                @if(Auth::user()->hasPermission('repairs.view'))
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">งานซ่อม</p>
                 </div>
@@ -124,7 +125,9 @@
                     <i class="fas fa-chart-bar w-5 mr-3"></i>
                     รายงานเบิกอะไหล่
                 </a>
+                @endif
 
+                @if(Auth::user()->hasPermission('reports.view'))
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">รายงาน</p>
                 </div>
@@ -148,10 +151,13 @@
                     <i class="fas fa-shopping-bag w-5 mr-3"></i>
                     รายงานจัดซื้อ
                 </a>
+                @endif
 
+                @if(Auth::user()->hasAnyPermission(['products.view', 'stock.view']))
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">สินค้า & คลัง</p>
                 </div>
+                @if(Auth::user()->hasPermission('products.view'))
                 <a href="{{ route('products.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('products.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-box w-5 mr-3"></i>
                     สินค้า
@@ -164,6 +170,8 @@
                     <i class="fas fa-truck w-5 mr-3"></i>
                     ซัพพลายเออร์
                 </a>
+                @endif
+                @if(Auth::user()->hasPermission('stock.view'))
                 <a href="{{ route('stocks.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('stocks.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-warehouse w-5 mr-3"></i>
                     คลังสินค้า (Warehouse)
@@ -178,7 +186,10 @@
                     สั่งสินค้าจากร้านกลาง
                 </a>
                 @endif
+                @endif
+                @endif
 
+                @if(Auth::user()->hasPermission('stock.view'))
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">จัดซื้อ</p>
                 </div>
@@ -198,10 +209,13 @@
                     <i class="fas fa-exchange-alt w-5 mr-3"></i>
                     โอนสต๊อก
                 </a>
+                @endif
 
+                @if(Auth::user()->hasAnyPermission(['sales.view', 'customers.view']))
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">ขาย & ลูกค้า</p>
                 </div>
+                @if(Auth::user()->hasPermission('sales.view'))
                 <a href="{{ route('pos') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('pos') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-cash-register w-5 mr-3"></i>
                     POS ขายสินค้า
@@ -214,15 +228,22 @@
                     <i class="fas fa-file-alt w-5 mr-3"></i>
                     ใบเสนอราคา
                 </a>
+                @endif
+                @if(Auth::user()->hasPermission('customers.view'))
                 <a href="{{ route('customers.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('customers.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-users w-5 mr-3"></i>
                     ลูกค้า
                 </a>
+                @endif
+                @if(Auth::user()->hasPermission('finance.view'))
                 <a href="{{ route('accounts-receivable.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('accounts-receivable.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-hand-holding-usd w-5 mr-3"></i>
                     บัญชีลูกหนี้
                 </a>
+                @endif
+                @endif
 
+                @if(Auth::user()->hasPermission('finance.view'))
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">การเงิน</p>
                 </div>
@@ -234,19 +255,24 @@
                     <i class="fas fa-calculator w-5 mr-3"></i>
                     ปิดยอดประจำวัน
                 </a>
+                @endif
 
-                @if(Auth::user() && Auth::user()->isManager())
+                @if(Auth::user()->hasAnyPermission(['users.view', 'branches.view']))
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">จัดการ</p>
                 </div>
+                @if(Auth::user()->hasPermission('users.view'))
                 <a href="{{ route('users.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-user-cog w-5 mr-3"></i>
                     พนักงาน
                 </a>
+                @endif
+                @if(Auth::user()->hasPermission('branches.view'))
                 <a href="{{ route('branches.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('branches.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-store w-5 mr-3"></i>
                     สาขา
                 </a>
+                @endif
                 <a href="{{ route('audit-logs.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('audit-logs.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-history w-5 mr-3"></i>
                     Audit Log
@@ -255,7 +281,9 @@
                     <i class="fas fa-bell w-5 mr-3"></i>
                     การแจ้งเตือน
                 </a>
+                @endif
 
+                @if(Auth::user()->hasPermission('settings.view'))
                 <div class="pt-2 pb-1">
                     <p class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">ตั้งค่า</p>
                 </div>
@@ -273,10 +301,12 @@
                     </svg>
                     LINE OA แชทบอท
                 </a>
+                @if(Auth::user()->hasPermission('roles.view'))
                 <a href="{{ route('roles.index') }}" class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors {{ request()->routeIs('roles.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700/50' }}">
                     <i class="fas fa-user-shield w-5 mr-3"></i>
                     จัดการสิทธิ์
                 </a>
+                @endif
                 @endif
 
                 <!-- Billing -->

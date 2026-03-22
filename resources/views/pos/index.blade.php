@@ -164,30 +164,50 @@
         </div>
 
         <!-- Cart Section -->
-        <div class="flex flex-col bg-white rounded-xl shadow-sm">
+        <div class="flex flex-col bg-white rounded-xl shadow-sm h-full overflow-hidden">
             <!-- Customer -->
-            <div class="p-3 border-b">
+            <div class="p-3 border-b flex-shrink-0">
                 <div class="flex items-center justify-between mb-1.5">
                     <h3 class="font-semibold text-gray-800 text-sm"><i class="fas fa-user text-gray-400 mr-1.5"></i>ลูกค้า</h3>
                     <span class="text-[11px] px-2 py-0.5 rounded-full font-medium" :class="priceTypeColors[customerType]"
                         x-text="priceTypeLabels[customerType]"></span>
                 </div>
-                <select x-model="customerId" @change="onCustomerChange()"
-                    class="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50">
-                    <option value="">ลูกค้าทั่วไป (ปลีก)</option>
-                    @foreach($customers as $customer)
-                    <option value="{{ $customer->id }}" data-type="{{ $customer->customer_type }}"
-                        data-credit-limit="{{ $customer->credit_limit }}"
-                        data-credit-days="{{ $customer->credit_days }}"
-                        data-has-credit="{{ $customer->hasCredit() ? '1' : '0' }}">
-                        {{ $customer->name }} - {{ $customer->phone }}
-                        @if($customer->customer_type !== 'retail')
-                        [{{ ['wholesale'=>'ขายส่ง','vip'=>'VIP','partner'=>'พาร์ทเนอร์','corporate'=>'องค์กร'][$customer->customer_type] ?? $customer->customer_type }}]
-                        @endif
-                        @if($customer->hasCredit()) (เครดิต {{ $customer->credit_days }} วัน) @endif
-                    </option>
-                    @endforeach
-                </select>
+                <div class="relative" x-data="{ customerSearch: '', customerOpen: false }" @click.outside="customerOpen = false">
+                    <input type="text" x-model="customerSearch"
+                        @focus="customerOpen = true"
+                        @input="customerOpen = true"
+                        :placeholder="customerId ? customerSelectedLabel : 'ค้นหาลูกค้า (ชื่อ/เบอร์โทร)...'"
+                        class="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm bg-gray-50">
+                    <button x-show="customerId" @click.stop="customerId = ''; customerSearch = ''; customerOpen = false; onCustomerChange()"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 text-xs">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div x-show="customerOpen" x-transition
+                        class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        <div @click="customerId = ''; customerSearch = ''; customerOpen = false; onCustomerChange()"
+                            class="px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50"
+                            :class="!customerId ? 'bg-indigo-50 font-medium' : ''">
+                            ลูกค้าทั่วไป (ปลีก)
+                        </div>
+                        @foreach($customers as $customer)
+                        @php
+                        $custLabel = $customer->name . ' - ' . $customer->phone;
+                        if ($customer->customer_type !== 'retail') {
+                        $custLabel .= ' [' . (['wholesale'=>'ขายส่ง','vip'=>'VIP','partner'=>'พาร์ทเนอร์','corporate'=>'องค์กร'][$customer->customer_type] ?? $customer->customer_type) . ']';
+                        }
+                        if ($customer->hasCredit()) {
+                        $custLabel .= ' (เครดิต ' . $customer->credit_days . ' วัน)';
+                        }
+                        @endphp
+                        <div x-show="!customerSearch || '{{ strtolower(addslashes($customer->name . ' ' . $customer->phone)) }}'.includes(customerSearch.toLowerCase())"
+                            @click="customerId = '{{ $customer->id }}'; customerSearch = ''; customerOpen = false; customerSelectedLabel = '{{ addslashes($custLabel) }}'; onCustomerChangeData('{{ $customer->customer_type }}', {{ $customer->credit_limit ?? 0 }}, {{ $customer->credit_days ?? 30 }}, {{ $customer->hasCredit() ? 'true' : 'false' }})"
+                            class="px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 border-t border-gray-50"
+                            :class="customerId === '{{ $customer->id }}' ? 'bg-indigo-50 font-medium' : ''">
+                            {{ $custLabel }}
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
             <!-- Cart Items -->
@@ -234,7 +254,7 @@
             </div>
 
             <!-- Summary -->
-            <div class="p-3 border-t bg-gray-50/80">
+            <div class="p-3 border-t bg-gray-50/80 flex-shrink-0 overflow-y-auto" style="max-height: 55%">
                 <div class="space-y-1 text-sm">
                     <div class="flex justify-between text-gray-500">
                         <span>รวม (<span x-text="cart.length"></span> รายการ)</span>
@@ -377,6 +397,7 @@
             viewMode: 'table',
             cart: JSON.parse(localStorage.getItem('pos_cart') || '[]'),
             customerId: localStorage.getItem('pos_customerId') || '',
+            customerSelectedLabel: localStorage.getItem('pos_customerLabel') || '',
             customerType: localStorage.getItem('pos_customerType') || 'retail',
             discount: parseFloat(localStorage.getItem('pos_discount') || '0'),
             paymentMethod: localStorage.getItem('pos_paymentMethod') || 'cash',
@@ -432,9 +453,9 @@
                 this.visibleCount = parseInt(this.$el.dataset.productCount) || 0;
                 this.initBarcode();
                 this.initWatchers();
-                // Restore customer selection if saved
-                if (this.customerId) {
-                    this.$nextTick(() => this.onCustomerChange());
+                // Restore price type if customer was saved
+                if (this.customerId && this.customerType !== 'retail') {
+                    this.$nextTick(() => this.updatePrices());
                 }
             },
 
@@ -445,6 +466,7 @@
                     deep: true
                 });
                 this.$watch('customerId', (val) => localStorage.setItem('pos_customerId', val));
+                this.$watch('customerSelectedLabel', (val) => localStorage.setItem('pos_customerLabel', val));
                 this.$watch('customerType', (val) => localStorage.setItem('pos_customerType', val));
                 this.$watch('discount', (val) => localStorage.setItem('pos_discount', val));
                 this.$watch('paymentMethod', (val) => localStorage.setItem('pos_paymentMethod', val));
@@ -477,33 +499,32 @@
             },
 
             onCustomerChange() {
-                const select = document.querySelector('select[x-model="customerId"]');
-                const option = select?.selectedOptions[0];
-                if (option && this.customerId) {
-                    this.customerHasCredit = option.dataset.hasCredit === '1';
-                    this.customerCreditLimit = parseFloat(option.dataset.creditLimit || 0);
-                    this.customerCreditDays = parseInt(option.dataset.creditDays || 30);
-                    this.setDefaultCreditDueDate();
-
-                    // Auto-set price type based on customer type
-                    const cType = option.dataset.type || 'retail';
-                    const typeMap = {
-                        retail: 'retail',
-                        wholesale: 'wholesale',
-                        vip: 'vip',
-                        partner: 'partner',
-                        corporate: 'retail'
-                    };
-                    this.customerType = typeMap[cType] || 'retail';
-                    this.updatePrices();
-                } else {
+                if (!this.customerId) {
                     this.customerHasCredit = false;
                     this.customerCreditLimit = 0;
                     this.customerCreditDays = 30;
                     this.customerType = 'retail';
+                    this.customerSelectedLabel = '';
                     this.updatePrices();
                     this.setDefaultCreditDueDate();
                 }
+            },
+
+            onCustomerChangeData(cType, creditLimit, creditDays, hasCredit) {
+                this.customerHasCredit = hasCredit;
+                this.customerCreditLimit = creditLimit;
+                this.customerCreditDays = creditDays;
+                this.setDefaultCreditDueDate();
+
+                const typeMap = {
+                    retail: 'retail',
+                    wholesale: 'wholesale',
+                    vip: 'vip',
+                    partner: 'partner',
+                    corporate: 'retail'
+                };
+                this.customerType = typeMap[cType] || 'retail';
+                this.updatePrices();
             },
 
             formatNumber(num) {
@@ -646,11 +667,13 @@
                 this.discount = 0;
                 this.receivedAmount = 0;
                 this.customerId = '';
+                this.customerSelectedLabel = '';
                 this.customerType = 'retail';
                 this.paymentMethod = 'cash';
                 this.creditDueDate = '';
                 localStorage.removeItem('pos_cart');
                 localStorage.removeItem('pos_customerId');
+                localStorage.removeItem('pos_customerLabel');
                 localStorage.removeItem('pos_customerType');
                 localStorage.removeItem('pos_discount');
                 localStorage.removeItem('pos_paymentMethod');

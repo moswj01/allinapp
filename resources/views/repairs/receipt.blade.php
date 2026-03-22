@@ -92,10 +92,10 @@
         }
 
         .panel {
-            @if($paperSize ==='A4') width: 210mm;
-            min-height: 148mm;
-            @else width: 210mm;
-            height: 148mm;
+            @if($paperSize ==='A4') width: 200mm;
+            min-height: 138mm;
+            @else width: 200mm;
+            height: 138mm;
             @endif border: 1px solid var(--line);
             border-radius: 10px;
             padding: 10px;

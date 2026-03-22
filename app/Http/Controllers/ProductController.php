@@ -78,6 +78,13 @@ class ProductController extends Controller
 
     public function create()
     {
+        // Check plan limit
+        $tenant = \App\Models\Tenant::current();
+        if ($tenant && !$tenant->canAddProduct()) {
+            return redirect()->route('products.index')
+                ->with('error', 'จำนวนสินค้าถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
+        }
+
         $categories = Category::where('type', 'product')->where('is_active', true)->get();
         $branches = Branch::where('is_active', true)->orderBy('name')->get();
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
@@ -87,6 +94,12 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        // Check plan limit
+        $tenant = \App\Models\Tenant::current();
+        if ($tenant && !$tenant->canAddProduct()) {
+            return back()->with('error', 'จำนวนสินค้าถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
+        }
+
         $validated = $request->validate([
             'sku' => 'required|string|max:50|unique:products,sku',
             'barcode' => 'nullable|string|max:50',

@@ -31,6 +31,11 @@ class Role extends Model
     {
         $permissions = $this->permissions ?? [];
 
+        // Super wildcard — grants all permissions (e.g. owner role)
+        if (in_array('*', $permissions)) {
+            return true;
+        }
+
         // Check exact match
         if (in_array($permission, $permissions)) {
             return true;
