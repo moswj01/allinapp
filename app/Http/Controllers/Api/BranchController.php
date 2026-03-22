@@ -28,7 +28,7 @@ class BranchController extends Controller
     {
         // Check plan limit
         $tenant = Tenant::current();
-        if ($tenant && !$tenant->canAddBranch()) {
+        if (!$tenant || !$tenant->canAddBranch()) {
             return response()->json([
                 'success' => false,
                 'message' => 'จำนวนสาขาถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ',

@@ -38,7 +38,7 @@ class ProductController extends Controller
     {
         // Check plan limit
         $tenant = Tenant::current();
-        if ($tenant && !$tenant->canAddProduct()) {
+        if (!$tenant || !$tenant->canAddProduct()) {
             return response()->json([
                 'success' => false,
                 'message' => 'จำนวนสินค้าถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ',

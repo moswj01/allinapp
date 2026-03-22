@@ -80,7 +80,7 @@ class ProductController extends Controller
     {
         // Check plan limit
         $tenant = \App\Models\Tenant::current();
-        if ($tenant && !$tenant->canAddProduct()) {
+        if (!$tenant || !$tenant->canAddProduct()) {
             return redirect()->route('products.index')
                 ->with('error', 'จำนวนสินค้าถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
         }
@@ -96,7 +96,7 @@ class ProductController extends Controller
     {
         // Check plan limit
         $tenant = \App\Models\Tenant::current();
-        if ($tenant && !$tenant->canAddProduct()) {
+        if (!$tenant || !$tenant->canAddProduct()) {
             return back()->with('error', 'จำนวนสินค้าถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
         }
 

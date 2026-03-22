@@ -62,7 +62,7 @@ class UserController extends Controller
 
         // Check plan limit
         $tenant = Tenant::current();
-        if ($tenant && !$tenant->canAddUser()) {
+        if (!$tenant || !$tenant->canAddUser()) {
             return redirect()->route('users.index')
                 ->with('error', 'จำนวนผู้ใช้ถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
         }
@@ -96,7 +96,7 @@ class UserController extends Controller
 
         // Check plan limit
         $tenant = Tenant::current();
-        if ($tenant && !$tenant->canAddUser()) {
+        if (!$tenant || !$tenant->canAddUser()) {
             return back()->with('error', 'จำนวนผู้ใช้ถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
         }
 
@@ -224,11 +224,15 @@ class UserController extends Controller
             abort(403, 'คุณไม่มีสิทธิ์ลบผู้ใช้นี้');
         }
 
-        // Soft delete by deactivating
-        $user->update(['is_active' => false]);
+        // Cannot delete owner
+        if ($user->isOwner()) {
+            return back()->with('error', 'ไม่สามารถลบบัญชีเจ้าของระบบได้');
+        }
+
+        $user->delete();
 
         return redirect()->route('users.index')
-            ->with('success', 'ปิดการใช้งานผู้ใช้เรียบร้อยแล้ว');
+            ->with('success', 'ลบผู้ใช้เรียบร้อยแล้ว');
     }
 
     public function toggleStatus(User $user)

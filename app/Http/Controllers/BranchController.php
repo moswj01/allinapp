@@ -36,7 +36,7 @@ class BranchController extends Controller
     {
         // Check plan limit
         $tenant = Tenant::current();
-        if ($tenant && !$tenant->canAddBranch()) {
+        if (!$tenant || !$tenant->canAddBranch()) {
             return redirect()->route('branches.index')
                 ->with('error', 'จำนวนสาขาถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
         }
@@ -62,7 +62,7 @@ class BranchController extends Controller
 
         // Check plan limit
         $tenant = Tenant::current();
-        if ($tenant && !$tenant->canAddBranch()) {
+        if (!$tenant || !$tenant->canAddBranch()) {
             return back()->with('error', 'จำนวนสาขาถึงขีดจำกัดของแพ็กเกจแล้ว กรุณาอัพเกรดแพ็กเกจ');
         }
 

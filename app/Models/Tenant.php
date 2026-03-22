@@ -115,21 +115,24 @@ class Tenant extends Model
     public function canAddUser(): bool
     {
         if ($this->slug === 'system-admin') return true;
-        $max = $this->plan->max_users ?? 5;
+        if (!$this->plan) return false;
+        $max = $this->plan->max_users;
         return $max === -1 || $this->users()->count() < $max;
     }
 
     public function canAddBranch(): bool
     {
         if ($this->slug === 'system-admin') return true;
-        $max = $this->plan->max_branches ?? 1;
+        if (!$this->plan) return false;
+        $max = $this->plan->max_branches;
         return $max === -1 || $this->branches()->count() < $max;
     }
 
     public function canAddProduct(): bool
     {
         if ($this->slug === 'system-admin') return true;
-        $max = $this->plan->max_products ?? 500;
+        if (!$this->plan) return false;
+        $max = $this->plan->max_products;
         return $max === -1 || Product::where('tenant_id', $this->id)->count() < $max;
     }
 

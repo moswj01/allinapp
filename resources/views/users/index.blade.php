@@ -109,13 +109,13 @@
                             <a href="{{ route('users.edit', $user) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="แก้ไข">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            @if($user->id !== auth()->id())
+                            @if($user->id !== auth()->id() && !$user->isOwner())
                             <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline"
-                                onsubmit="return confirm('ต้องการปิดการใช้งานผู้ใช้นี้?')">
+                                onsubmit="return confirm('ต้องการลบผู้ใช้นี้? ข้อมูลจะถูกลบถาวร')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="ปิดการใช้งาน">
-                                    <i class="fas fa-ban"></i>
+                                <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="ลบ">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </form>
                             @endif
